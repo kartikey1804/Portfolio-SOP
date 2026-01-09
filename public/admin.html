@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Portfolio Admin</title>
+
+  <!-- Admin CSS -->
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="icon" href="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==">
+</head>
+
+<body>
+
+<!-- AUTH (LOGIN) -->
+<section id="auth">
+  <h2>Admin Login</h2>
+  <form id="login-form">
+    <input type="email" name="email" placeholder="Email" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
+</section>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <h2>Admin</h2>
+    <a href="#stats">Dashboard</a>
+    <a href="#analytics">Analytics</a>
+    <a href="#status">Status</a>
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#projects">Projects</a>
+    <a href="#experience">Experience</a>
+    <a href="#education">Education</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#achievements">Achievements</a>
+    <a href="#certificates">Certificates</a>
+    <a href="#resume">Resume</a>
+    <a href="#social">Social Links</a>
+    <a href="#testimonials">Testimonials</a>
+    <a href="#contacts">Contact Submissions</a>
+    <a href="#scheduler">Content Scheduler</a>
+    <button id="logout-btn" class="danger">Logout</button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-content">
+
+    <!-- HEADER -->
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <div class="theme-switcher">
+          <button id="theme-light">Light</button>
+          <button id="theme-dark">Dark</button>
+          <button id="theme-system">System</button>
+        </div>
+        <div id="firestore-status-indicator"
+             class="firestore-status connecting"
+             role="status"
+             aria-live="polite">
+          Firestore Connecting...
+        </div>
+      </div>
+
+    <!-- STATS -->
+    <div class="stats-grid" id="stats">
+      <!-- Stats will remain minimal, analytics moved to dedicated section -->
+    </div>
+
+    <!-- ANALYTICS SECTION -->
+    <div class="admin-section" id="analytics">
+      <h2>Analytics</h2>
+      <div class="analytics-metrics">
+        <div class="stat-card">
+          <h3>Total Views</h3>
+          <p id="total-views">0</p>
+          <div class="stat-change">+12% this week</div>
+        </div>
+        <div class="stat-card">
+          <h3>Contact Form Submissions</h3>
+          <p id="contact-submissions">0</p>
+          <div class="stat-change">+3 this month</div>
+        </div>
+        <div class="stat-card">
+          <h3>Project Interactions</h3>
+          <p id="project-interactions">0</p>
+          <div class="stat-change">+8% this week</div>
+        </div>
+        <div class="stat-card">
+          <h3>Resume Downloads</h3>
+          <p id="resume-downloads">0</p>
+          <div class="stat-change">+2 this month</div>
+        </div>
+        <div class="stat-card">
+          <h3>Skill Clicks</h3>
+          <p id="skill-clicks">0</p>
+          <div class="stat-change">+5% this week</div>
+        </div>
+        <div class="stat-card">
+          <h3>Featured Project Views</h3>
+          <p id="featured-views">0</p>
+          <div class="stat-change">+15% this week</div>
+        </div>
+      </div>
+      
+      <!-- MONTHLY ANALYTICS SUBSECTION -->
+      <div class="monthly-analytics">
+        <h3>Monthly Analytics</h3>
+        <div class="analytics-charts">
+          <div class="chart-container">
+            <h4>Monthly Trends</h4>
+            <canvas id="monthly-chart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h4>Top Projects</h4>
+            <canvas id="top-projects-chart"></canvas>
+          </div>
+        </div>
+        <div class="top-performing-content">
+          <h4>Top-Performing Content</h4>
+          <div id="top-projects-list">
+            <!-- Top projects will be rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT SECTIONS -->
+    <div class="admin-section" id="status">
+      <h2>Status Management</h2>
+      <form id="status-form">
+        <div class="form-group">
+          <label for="status-type">Status Type</label>
+          <select id="status-type">
+            <option value="available">Available</option>
+            <option value="working">Working</option>
+            <option value="busy">Busy</option>
+            <option value="not-available">Not Available</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status-label">Status Label</label>
+          <input type="text" id="status-label" placeholder="Enter custom status label" />
+        </div>
+        <div class="form-group">
+          <label for="status-visible">
+            <input type="checkbox" id="status-visible" checked /> Visible on Public Page
+          </label>
+        </div>
+        <button type="submit">Save Status</button>
+      </form>
+    </div>
+    
+    <div class="admin-section" id="about">
+      <h2>About</h2>
+      <form id="about-form">
+        <input type="hidden" id="about-id">
+        <textarea id="about-content" placeholder="About content"></textarea>
+        <label for="about-available">Available for work:</label>
+        <input type="checkbox" id="about-available" checked>
+        <input type="number" id="about-order" placeholder="Order" value="0">
+        <label><input type="checkbox" id="about-visible"> Visible</label>
+        <button type="submit">Save</button>
+        <button type="button" id="about-new-btn">New</button>
+      </form>
+      <ul id="about-list"></ul>
+    </div>
+
+    <div class="admin-section" id="skills">
+      <h2>Skills</h2>
+      <form id="skills-form">
+        <input type="hidden" id="skill-id">
+        <input id="skill-title" placeholder="Skill title"/>
+        <textarea id="skill-description" placeholder="Skill description"></textarea>
+        <select id="skill-level">
+          <option value="novice">Novice</option>
+          <option value="learning">Learning</option>
+          <option value="working_knowledge">Working Knowledge</option>
+          <option value="confident">Confident</option>
+        </select>
+        <select id="skill-type">
+          <option value="frontend">Frontend</option>
+          <option value="backend">Backend</option>
+          <option value="database">Database</option>
+          <option value="devops">DevOps</option>
+          <option value="tools">Tools</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="number" id="skill-percentage" placeholder="Percentage (1-100)" min="1" max="100" value="50"/>
+        <input type="number" id="skill-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="skill-visible" checked> Visible</label>
+        <button type="submit">Save Skill</button>
+        <button type="button" id="skill-new-btn">New</button>
+      </form>
+      <ul id="skills-list"></ul>
+      <h3>Skill Progression</h3>
+      <div id="skill-progression-container">
+        <p>Select a skill from the list above to manage its progression points.</p>
+      </div>
+    </div>
+
+    <div class="admin-section" id="projects">
+      <h2>Projects</h2>
+      <form id="projects-form">
+        <input type="hidden" id="project-id">
+        <input type="text" id="project-title" placeholder="Project Title"/>
+        <textarea id="project-description" placeholder="Project Description"></textarea>
+        <textarea id="project-image-urls" placeholder="Image URLs (one per line)"></textarea>
+        <input type="url" id="project-github-url" placeholder="GitHub URL"/>
+        <input type="url" id="project-live-url" placeholder="Live URL"/>
+        <input type="number" id="project-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="project-visible" checked> Visible</label>
+        <button type="submit">Save Project</button>
+        <button type="button" id="project-new-btn">New</button>
+      </form>
+      <ul id="projects-list"></ul>
+    </div>
+
+    <div class="admin-section" id="experience">
+      <h2>Experience</h2>
+      <form id="experience-form">
+        <input type="hidden" id="experience-id">
+        <input type="text" id="experience-job-title" placeholder="Job Title"/>
+        <input type="text" id="experience-company-name" placeholder="Company Name"/>
+        <input type="text" id="experience-role" placeholder="Role"/>
+        <textarea id="experience-responsibilities" placeholder="Responsibilities"></textarea>
+        <label for="experience-from-date">From:</label>
+        <input type="month" id="experience-from-date"/>
+        <label for="experience-to-date">To:</label>
+        <input type="month" id="experience-to-date"/>
+        <label for="experience-to-present">Present:</label>
+        <input type="checkbox" id="experience-to-present"/>
+        <input type="number" id="experience-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="experience-visible" checked> Visible</label>
+        <button type="submit">Save Experience</button>
+        <button type="button" id="experience-new-btn">New</button>
+      </form>
+      <ul id="experience-list"></ul>
+    </div>
+
+    <div class="admin-section" id="education">
+      <h2>Education</h2>
+      <form id="education-form">
+        <input type="hidden" id="education-id">
+        <input type="text" id="education-degree" placeholder="Degree"/>
+        <input type="text" id="education-specialization" placeholder="Specialization"/>
+        <input type="text" id="education-institution" placeholder="Institution"/>
+        <input type="text" id="education-grade" placeholder="Percentage/CGPA"/>
+        <input type="number" id="education-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="education-visible" checked> Visible</label>
+        <button type="submit">Save Education</button>
+        <button type="button" id="education-new-btn">New</button>
+      </form>
+      <ul id="education-list"></ul>
+    </div>
+
+    <div class="admin-section" id="roadmap">
+      <h2>Roadmap</h2>
+      <form id="roadmap-form">
+        <input type="hidden" id="roadmap-id">
+        <input id="roadmap-title" placeholder="Roadmap Title"/>
+        <textarea id="roadmap-description" placeholder="Roadmap Description"></textarea>
+        <input type="number" id="roadmap-progress" placeholder="Progress (0-100)" min="0" max="100" value="0"/>
+        <input type="number" id="roadmap-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="roadmap-visible" checked> Visible</label>
+        <button type="submit">Save Roadmap</button>
+        <button type="button" id="roadmap-new-btn">New</button>
+      </form>
+      <ul id="roadmap-list"></ul>
+    </div>
+
+    <div class="admin-section" id="achievements">
+      <h2>Achievements</h2>
+      <form id="achievements-form">
+        <input type="hidden" id="achievements-id">
+        <input type="text" id="achievements-title" placeholder="Achievement Title"/>
+        <textarea id="achievements-description" placeholder="Achievement Description"></textarea>
+        <input type="number" id="achievements-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="achievements-visible" checked> Visible</label>
+        <button type="submit">Save Achievement</button>
+        <button type="button" id="achievements-new-btn">New</button>
+      </form>
+      <ul id="achievements-list"></ul>
+    </div>
+
+    <div class="admin-section" id="certificates">
+      <h2>Certificates</h2>
+      <form id="certificates-form">
+        <input type="hidden" id="certificates-id">
+        <input type="text" id="certificates-title" placeholder="Certificate Title"/>
+        <input type="text" id="certificates-issuer" placeholder="Issuer"/>
+        <input type="date" id="certificates-date"/>
+        <input type="url" id="certificates-url" placeholder="Certificate URL"/>
+        <input type="number" id="certificates-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="certificates-visible" checked> Visible</label>
+        <button type="submit">Save Certificate</button>
+        <button type="button" id="certificates-new-btn">New</button>
+      </form>
+      <ul id="certificates-list"></ul>
+    </div>
+
+    <div class="admin-section" id="resume">
+      <h2>Resume</h2>
+      <form id="resume-form">
+        <input type="hidden" id="resume-id">
+        <input type="text" id="resume-name" placeholder="Resume Name"/>
+        <input type="url" id="resume-url" placeholder="Resume URL"/>
+        <input type="number" id="resume-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="resume-visible" checked> Visible</label>
+        <button type="submit">Save Resume</button>
+        <button type="button" id="resume-new-btn">New</button>
+      </form>
+      <ul id="resume-list"></ul>
+    </div>
+
+    <div class="admin-section" id="social">
+      <h2>Social Links</h2>
+      <form id="social-links-form">
+        <input type="hidden" id="social-id">
+        <input id="social-platform" placeholder="Platform (e.g., GitHub, LinkedIn)"/>
+        <input id="social-url" placeholder="URL"/>
+        <input type="number" id="social-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="social-visible" checked> Visible</label>
+        <button type="submit">Save Social Link</button>
+        <button type="button" id="social-new-btn">New</button>
+      </form>
+      <ul id="social-links-list"></ul>
+    </div>
+
+    <div class="admin-section" id="testimonials">
+      <h2>Testimonials</h2>
+      <form id="testimonials-form">
+        <input type="hidden" id="testimonial-id">
+        <input type="text" id="testimonial-name" placeholder="Name" required/>
+        <input type="text" id="testimonial-role" placeholder="Role / Designation" required/>
+        <input type="text" id="testimonial-company" placeholder="Company / Organization" required/>
+        <textarea id="testimonial-message" placeholder="Testimonial Message" required></textarea>
+        <div class="rating-input">
+          <label for="testimonial-rating">Rating (1-5):</label>
+          <input type="number" id="testimonial-rating" min="1" max="5" value="5" required/>
+        </div>
+        <input type="url" id="testimonial-image" placeholder="Profile Image URL (optional)"/>
+        <input type="number" id="testimonial-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="testimonial-visible" checked> Visible</label>
+        <button type="submit">Save Testimonial</button>
+        <button type="button" id="testimonial-new-btn">New</button>
+      </form>
+      <ul id="testimonials-list"></ul>
+    </div>
+
+    <div class="admin-section" id="contacts">
+      <h2>Contact Submissions</h2>
+      <p>View and manage all contact form submissions.</p>
+      <ul id="contacts-list"></ul>
+    </div>
+
+    <div class="admin-section" id="scheduler">
+      <h2>Content Scheduler</h2>
+      <p>Schedule content updates for your portfolio.</p>
+      <form id="scheduler-form">
+        <input type="hidden" id="scheduler-id">
+        <select id="scheduler-content-type">
+          <option value="project">Project</option>
+          <option value="skill">Skill</option>
+          <option value="testimonial">Testimonial</option>
+          <option value="reading">Reading List</option>
+        </select>
+        <input type="text" id="scheduler-title" placeholder="Title" required>
+        <textarea id="scheduler-content" placeholder="Content"></textarea>
+        <input type="datetime-local" id="scheduler-publish-date" required>
+        <select id="scheduler-status">
+          <option value="draft">Draft</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="published">Published</option>
+        </select>
+        <input type="number" id="scheduler-order" placeholder="Order" value="0">
+        <button type="submit">Save Schedule</button>
+        <button type="button" id="scheduler-new-btn">New</button>
+      </form>
+      <ul id="scheduler-list"></ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- Scripts -->
+<script type="module" src="/js/firebase.js"></script>
+<script type="module" src="/js/auth.js"></script>
+<script type="module" src="js/admin.js"></script>
+    <script type="module" src="js/theme-switcher.js"></script>
+  </body>
+</html>

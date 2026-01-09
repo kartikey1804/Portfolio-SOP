@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - Home</title>
+    <!-- Open Graph Meta Placeholders -->
+    <meta property="og:title" content="My Portfolio">
+    <meta property="og:description" content="Showcasing my skills, projects, and experience.">
+    <meta property="og:image" content="/assets/og-default.png">
+    <meta property="og:url" content="https://yourportfolio.com">
+    <meta property="og:type" content="website">
+
+    <!-- PWA Support -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <!-- Chart.js for Interactive Skill Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#education">Education</a></li>
+                <li><a href="#roadmap">Roadmap</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn">Resume</a>
+                    <div class="dropdown-content">
+                        <a href="/assets/resume.pdf" download>Download PDF</a>
+                    </div>
+                </li>
+                <li><a href="#contact">Contact</a></li>
+                <li>
+                    <div class="hire-me-container">
+                        <button id="hire-me-btn">Hire Me</button>
+                        <div class="hire-me-options">
+                            <button id="mail-system-default">System Default</button>
+                            <button id="mail-gmail">Gmail</button>
+                            <button id="mail-outlook">Outlook</button>
+                            <button id="mail-copy">Copy Email</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <!-- Theme Switcher -->
+            <div class="theme-switcher">
+                <button id="theme-light">Light</button>
+                <button id="theme-dark">Dark</button>
+                <button id="theme-system">System</button>
+            </div>
+            <div id="firestore-status-indicator" class="firestore-status" role="status" aria-live="polite"></div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Sections rendered dynamically from Firestore -->
+        <section id="home">
+            <h1>Welcome to My Portfolio</h1>
+            <div id="status-welcome" class="status-container"></div>
+        </section>
+
+        <section id="about">
+            <h2>About Me</h2>
+            <div id="about-content"></div>
+        </section>
+
+        <section id="skills">
+            <h2>Skills</h2>
+            <div class="skills-container">
+                <div class="skills-list-container">
+                    <ul id="skills-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="featured-project">
+            <h2>Featured Project of the Day</h2>
+            <div id="featured-project-container"></div>
+        </section>
+
+        <section id="projects">
+            <h2>Projects</h2>
+            <div class="projects-filter">
+                <div class="search-bar">
+                    <input type="text" id="project-search" placeholder="Search projects...">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="web">Web Dev</button>
+                    <button class="filter-btn" data-filter="mobile">Mobile</button>
+                    <button class="filter-btn" data-filter="design">Design</button>
+                    <button class="filter-btn" data-filter="other">Other</button>
+                </div>
+            </div>
+            <ul id="projects-list"></ul>
+        </section>
+
+        <section id="social-links">
+            <h2>Social Links</h2>
+            <div id="social-links-container"></div>
+        </section>
+
+        <section id="experience">
+            <h2>Experience</h2>
+            <ul id="experience-list"></ul>
+        </section>
+
+        <section id="education">
+            <h2>Education</h2>
+            <ul id="education-list"></ul>
+        </section>
+
+        <section id="roadmap">
+            <h2>Roadmap</h2>
+            <ul id="roadmap-list"></ul>
+        </section>
+
+        <section id="achievements">
+            <h2>Achievements</h2>
+            <ul id="achievements-list"></ul>
+        </section>
+
+        <section id="certificates">
+            <h2>Certificates</h2>
+            <ul id="certificates-list"></ul>
+        </section>
+
+        <section id="testimonials">
+            <h2>Testimonials</h2>
+            <div id="testimonials-container"></div>
+        </section>
+
+        <section id="reading-list">
+            <h2>Reading List</h2>
+            <div id="reading-list-container"></div>
+        </section>
+
+        <section id="contact">
+            <h2>Contact</h2>
+            <div id="status-contact" class="status-container"></div>
+            <form id="contact-form">
+                <div class="form-group">
+                    <label for="contact-name">Name *</label>
+                    <input type="text" id="contact-name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-email">Email *</label>
+                    <input type="email" id="contact-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-phone">Contact Number (Optional)</label>
+                    <input type="tel" id="contact-phone" name="phone">
+                </div>
+                <div class="form-group">
+                    <label for="contact-linkedin">LinkedIn URL (Optional)</label>
+                    <input type="url" id="contact-linkedin" name="linkedin">
+                </div>
+                <div class="form-group">
+                    <label for="contact-message">Message * (Max 100 words)</label>
+                    <textarea id="contact-message" name="message" rows="5" maxlength="700" required></textarea>
+                    <div class="word-count">0/100 words</div>
+                </div>
+                <button type="submit" id="contact-submit">Send Message</button>
+                <div id="contact-status"></div>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 My Portfolio</p>
+        <div id="status-footer" class="status-container"></div>
+    </footer>
+
+    <!-- Lightbox Gallery -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-nav prev" id="lightbox-prev">&lt;</button>
+            <img src="" alt="Lightbox Image" class="lightbox-image" id="lightbox-image">
+            <button class="lightbox-nav next" id="lightbox-next">&gt;</button>
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+        <button class="lightbox-close" id="lightbox-close">&times;</button>
+    </div>
+
+    <!-- Firebase Initialization -->
+    <script type="module" src="/js/firebase.js"></script>
+    <script type="module" src="/js/main.js"></script>
+    <!-- PWA Service Worker Registration -->
+    <script type="module" src="/js/pwa.js"></script>
+    <!-- Analytics -->
+    <script type="module" src="/js/analytics.js"></script>
+    <!-- OG Meta Helper (client-side fallback) -->
+    <script type="module" src="/js/og.js"></script>
+    <script type="module" src="/js/theme-switcher.js"></script>
+</body>
+</html>
