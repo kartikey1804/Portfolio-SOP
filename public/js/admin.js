@@ -1438,6 +1438,8 @@ if (schedulerForm) {
     const title = document.getElementById('scheduler-title').value;
     const content = document.getElementById('scheduler-content').value;
     const publishDate = new Date(document.getElementById('scheduler-publish-date').value).toISOString();
+    const startDate = document.getElementById('scheduler-start-date').value;
+    const endDate = document.getElementById('scheduler-end-date').value;
     const status = document.getElementById('scheduler-status').value;
     const order = parseInt(document.getElementById('scheduler-order').value);
 
@@ -1450,6 +1452,15 @@ if (schedulerForm) {
       order,
       updatedAt: new Date().toISOString()
     };
+    
+    // Add conditional visibility dates if provided
+    if (startDate) {
+      schedulerData.startVisibility = new Date(startDate).toISOString();
+    }
+    
+    if (endDate) {
+      schedulerData.endVisibility = new Date(endDate).toISOString();
+    }
 
     try {
       if (id) {

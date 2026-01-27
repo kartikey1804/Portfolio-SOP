@@ -501,6 +501,21 @@
         <input type="text" id="scheduler-title" placeholder="Title" required>
         <textarea id="scheduler-content" placeholder="Content"></textarea>
         <input type="datetime-local" id="scheduler-publish-date" required>
+        
+        <h4>Conditional Visibility</h4>
+        <div class="visibility-options">
+          <div class="form-group">
+            <label for="scheduler-start-date">Start Visibility (optional)</label>
+            <input type="datetime-local" id="scheduler-start-date">
+            <small>When this content becomes visible</small>
+          </div>
+          <div class="form-group">
+            <label for="scheduler-end-date">End Visibility (optional)</label>
+            <input type="datetime-local" id="scheduler-end-date">
+            <small>When this content becomes hidden</small>
+          </div>
+        </div>
+        
         <select id="scheduler-status">
           <option value="draft">Draft</option>
           <option value="scheduled">Scheduled</option>

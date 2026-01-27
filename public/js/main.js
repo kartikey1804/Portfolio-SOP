@@ -23,8 +23,96 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500);
   }
   
-
-
+  // ---------- VISITOR FEEDBACK SYSTEM ----------
+  const feedbackBtn = document.getElementById('feedback-btn');
+  const feedbackModal = document.getElementById('feedback-modal');
+  const feedbackModalClose = document.getElementById('feedback-modal-close');
+  const feedbackForm = document.getElementById('feedback-form');
+  const feedbackStatus = document.getElementById('feedback-status');
+  
+  // Show feedback modal
+  if (feedbackBtn && feedbackModal) {
+    feedbackBtn.addEventListener('click', () => {
+      feedbackModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+  
+  // Hide feedback modal
+  const closeFeedbackModal = () => {
+    feedbackModal.classList.remove('active');
+    document.body.style.overflow = '';
+    feedbackStatus.textContent = '';
+    feedbackStatus.className = 'feedback-status';
+  };
+  
+  if (feedbackModalClose) {
+    feedbackModalClose.addEventListener('click', closeFeedbackModal);
+  }
+  
+  // Close modal when clicking outside
+  if (feedbackModal) {
+    feedbackModal.addEventListener('click', (e) => {
+      if (e.target === feedbackModal) {
+        closeFeedbackModal();
+      }
+    });
+  }
+  
+  // Close modal with Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && feedbackModal && feedbackModal.classList.contains('active')) {
+      closeFeedbackModal();
+    }
+  });
+  
+  // Feedback form submission
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = feedbackForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      feedbackStatus.textContent = 'Sending feedback...';
+      feedbackStatus.className = 'feedback-status';
+      
+      try {
+        const formData = new FormData(feedbackForm);
+        const feedbackData = {
+          rating: parseInt(formData.get('rating')),
+          category: formData.get('category'),
+          message: formData.get('message').trim(),
+          name: formData.get('name').trim(),
+          email: formData.get('email').trim(),
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          referrer: document.referrer
+        };
+        
+        // Import addDoc dynamically to avoid import at top level
+        const { addDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        
+        // Add feedback to Firestore
+        await addDoc(collection(db, 'feedback'), feedbackData);
+        
+        feedbackStatus.textContent = 'Thank you for your feedback!';
+        feedbackStatus.className = 'feedback-status success';
+        
+        // Reset form after successful submission
+        feedbackForm.reset();
+        
+        // Close modal after 2 seconds
+        setTimeout(closeFeedbackModal, 2000);
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        feedbackStatus.textContent = 'Failed to send feedback. Please try again later.';
+        feedbackStatus.className = 'feedback-status error';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  }
+  
   // ---------- STATUS MANAGEMENT ----------
   onSnapshot(doc(db, 'settings', 'profileStatus'), (docSnap) => {
     const statusWelcome = document.getElementById('status-welcome');
@@ -64,15 +152,27 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Check if content is scheduled and publish date has arrived
         if (data.status === 'scheduled' && data.publishDate <= now) {
-          // Prepare content for publishing
+          // Prepare content for publishing with conditional visibility
           const publishData = {
             title: data.title,
             content: data.content,
             order: data.order,
-            visible: true,
             createdAt: now,
             updatedAt: now
           };
+          
+          // Set initial visibility based on start date if provided
+          if (data.startVisibility) {
+            publishData.visible = data.startVisibility <= now;
+            publishData.startVisibility = data.startVisibility;
+          } else {
+            publishData.visible = true;
+          }
+          
+          // Add end visibility if provided
+          if (data.endVisibility) {
+            publishData.endVisibility = data.endVisibility;
+          }
           
           // Publish to the appropriate collection based on contentType
           switch (data.contentType) {
@@ -107,6 +207,67 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Set up interval to check for scheduled content every minute
   setInterval(checkScheduledContent, 60000); // 60 seconds
+  
+  // ---------- CONTENT VISIBILITY MANAGER ----------
+  // Function to check and update content visibility based on start/end dates
+  const checkContentVisibility = async () => {
+    try {
+      const now = new Date().toISOString();
+      const collectionsToCheck = ['projects', 'skills', 'testimonials', 'reading'];
+      
+      for (const collectionName of collectionsToCheck) {
+        const collectionRef = collection(db, collectionName);
+        const snapshot = await getDocs(collectionRef);
+        
+        for (const docSnap of snapshot.docs) {
+          const data = docSnap.data();
+          let shouldBeVisible = true;
+          let needsUpdate = false;
+          
+          // Check start visibility if provided
+          if (data.startVisibility) {
+            if (now >= data.startVisibility && data.visible === false) {
+              shouldBeVisible = true;
+              needsUpdate = true;
+            } else if (now < data.startVisibility && data.visible === true) {
+              shouldBeVisible = false;
+              needsUpdate = true;
+            }
+          }
+          
+          // Check end visibility if provided
+          if (data.endVisibility) {
+            if (now > data.endVisibility && data.visible === true) {
+              shouldBeVisible = false;
+              needsUpdate = true;
+            } else if (now <= data.endVisibility && data.visible === false) {
+              // Only make visible if start date is also satisfied
+              if (!data.startVisibility || now >= data.startVisibility) {
+                shouldBeVisible = true;
+                needsUpdate = true;
+              }
+            }
+          }
+          
+          // Update visibility if needed
+          if (needsUpdate) {
+            await updateDoc(doc(db, collectionName, docSnap.id), {
+              visible: shouldBeVisible,
+              updatedAt: now
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking content visibility:', error);
+    }
+  };
+  
+  // Run visibility check immediately on page load
+  checkContentVisibility();
+  
+  // Set up interval to check content visibility every 5 minutes
+  setInterval(checkContentVisibility, 300000); // 300 seconds = 5 minutes
 
   // ---------- FIRESTORE STATUS ----------
   initializeStatusChecker();
