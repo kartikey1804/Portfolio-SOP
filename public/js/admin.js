@@ -57,7 +57,7 @@ const showFeedback = (message, isSuccess = true) => {
 
 // Sidebar navigation logic
 const sidebarLinks = document.querySelectorAll('.admin-sidebar a');
-const adminSections = document.querySelectorAll('.admin-content > .admin-section, .admin-content > .stats-grid');
+const adminSections = document.querySelectorAll('.admin-content > .admin-section');
 
 const showSection = (targetId) => {
   adminSections.forEach(section => {
@@ -80,8 +80,8 @@ sidebarLinks.forEach(link => {
   });
 });
 
-// Show dashboard by default on load
-showSection('stats');
+// Show analytics by default on load
+showSection('analytics');
 
 // Function to toggle dashboard and auth sections
 const toggleAdminView = (loggedIn) => {

@@ -46,7 +46,9 @@ self.addEventListener('fetch', event => {
     request.url.includes('firebase') ||
     request.url.includes('googleapis') ||
     request.url.includes('chart.js') ||
-    request.url.includes('cdn.jsdelivr.net')
+    request.url.includes('cdn.jsdelivr.net') ||
+    request.url.includes('neural-network.js') ||
+    request.url.includes('cognitive-neural-network.js')
   ) {
     return;
   }

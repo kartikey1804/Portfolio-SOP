@@ -258,6 +258,13 @@ form {
   gap: 14px;
 }
 
+/* Grade Fields Container */
+.grade-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
 input,
 textarea,
 select {

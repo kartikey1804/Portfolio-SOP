@@ -838,7 +838,7 @@ onSnapshot(query(collection(db, 'roadmap'), orderBy('order')), snapshot => {
     };
     
     // Use actual progression data or empty array if none exists (no simulation)
-    const progressionTimeline = item.progression || [];
+    const progressionTimeline = Array.isArray(item.progression) ? item.progression : [];
     
     // Get color for the milestone based on latest progression type or default to planned
     let latestProgress = progressionTimeline.length > 0 ? progressionTimeline[progressionTimeline.length - 1] : { type: 'planned', value: 0 };
