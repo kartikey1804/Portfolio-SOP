@@ -6,7 +6,6 @@ import {
   onSnapshot,
   query,
   orderBy,
-  limit,
   doc,
   getDocs,
   addDoc,
@@ -14,6 +13,17 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  // ---------- LOADING SCREEN ----------
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    // Hide loading screen after a short delay to ensure content is fully loaded
+    setTimeout(() => {
+      loadingScreen.classList.add('hidden');
+    }, 1500);
+  }
+  
+
 
   // ---------- STATUS MANAGEMENT ----------
   onSnapshot(doc(db, 'settings', 'profileStatus'), (docSnap) => {
@@ -280,24 +290,69 @@ document.addEventListener('DOMContentLoaded', () => {
 function renderListSection(sectionId, items, renderItem) {
   const section = document.getElementById(sectionId);
   if (!section) return;
-
-  const list = section.querySelector('ul');
-  if (!list) return;
-
-  list.innerHTML = '';
-
+  
+  // Try to find UL by direct query first, then by ID
+  let listElement = section.querySelector('ul') || document.getElementById(`${sectionId}-list`);
+  if (!listElement) return;
+  
+  listElement.innerHTML = '';
+  
   if (!items.length) {
     section.style.display = 'none';
     return;
   }
 
   section.style.display = '';
+  
   items.forEach(item => {
     const li = document.createElement('li');
     renderItem(li, item);
-    list.appendChild(li);
+    listElement.appendChild(li);
   });
 }
+
+/* ---------- HERO SECTION ---------- */
+onSnapshot(doc(db, 'hero', 'main'), (docSnap) => {
+  const heroSection = document.getElementById('home');
+  const heroTitle = document.querySelector('.hero-title');
+  const heroSubtitle = document.querySelector('.hero-subtitle');
+  const heroButtons = document.querySelector('.hero-buttons');
+
+  if (!heroSection || !heroTitle || !heroSubtitle || !heroButtons) return;
+
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    
+    if (data.visible) {
+      // Update hero content with Firestore data
+      if (data.name && data.role) {
+        heroTitle.textContent = `${data.name} | ${data.role}`;
+      } else if (data.name) {
+        heroTitle.textContent = data.name;
+      } else if (data.role) {
+        heroTitle.textContent = data.role;
+      } else {
+        heroTitle.textContent = 'Innovative Solutions for Modern Challenges';
+      }
+      
+      if (data.valueProposition) {
+        heroSubtitle.textContent = data.valueProposition;
+      } else {
+        heroSubtitle.textContent = 'Bridging the gap between technology and human experience through creative problem-solving';
+      }
+      
+      // Update CTA button text
+      const ctaButton = heroButtons.querySelector('.btn-primary');
+      if (ctaButton && data.ctaText) {
+        ctaButton.textContent = data.ctaText;
+      }
+      
+      heroSection.style.display = '';
+    } else {
+      heroSection.style.display = 'none';
+    }
+  }
+});
 
 /* ---------- ABOUT ---------- */
 onSnapshot(query(collection(db, 'about'), orderBy('order')), snapshot => {
@@ -371,14 +426,8 @@ onSnapshot(query(collection(db, 'skills'), orderBy('order')), snapshot => {
             ${skills.map(skill => {
               const percentage = skill.percentage || 70;
               
-              // Simulate skill progression data if none exists
-              const progressionData = skill.progression || [
-                { year: '2021', level: 40 },
-                { year: '2022', level: 55 },
-                { year: '2023', level: 70 },
-                { year: '2024', level: 85 },
-                { year: '2025', level: percentage }
-              ];
+              // Only show progression timeline if data exists
+              const progressionData = skill.progression || [];
               
               return `
                 <div class="skill-item">
@@ -389,6 +438,7 @@ onSnapshot(query(collection(db, 'skills'), orderBy('order')), snapshot => {
                   <div class="skill-bar">
                     <div class="skill-bar-fill" style="--skill-level: ${percentage}%;"></div>
                   </div>
+                  ${progressionData.length > 0 ? `
                   <div class="skill-progression-timeline">
                     <h5>Progression Over Time</h5>
                     <div class="timeline-container">
@@ -397,13 +447,14 @@ onSnapshot(query(collection(db, 'skills'), orderBy('order')), snapshot => {
                         <div class="timeline-item" style="left: ${(index / (progressionData.length - 1)) * 100}%;">
                           <div class="timeline-dot"></div>
                           <div class="timeline-content">
-                            <div class="timeline-year">${item.year}</div>
-                            <div class="timeline-level">${item.level}%</div>
+                            <div class="timeline-year">${item.year || 'N/A'}</div>
+                            <div class="timeline-level">${item.level || 0}%</div>
                           </div>
                         </div>
                       `).join('')}
                     </div>
                   </div>
+                  ` : ''}
                 </div>
               `;
             }).join('')}
@@ -471,10 +522,25 @@ function applyProjectFilters() {
   const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
   const searchTerm = document.getElementById('project-search')?.value.toLowerCase() || '';
   
+  // Define predefined categories
+  const predefinedCategories = ['web', 'mobile', 'design', 'data'];
+  
   // Filter projects
   const filteredProjects = allProjects.filter(project => {
+    // Get project category (default to 'other' if not specified)
+    const projectCategory = project.category?.toLowerCase() || 'other';
+    
     // Apply category filter
-    const matchesCategory = activeFilter === 'all' || project.category?.toLowerCase() === activeFilter;
+    let matchesCategory = false;
+    if (activeFilter === 'all') {
+      matchesCategory = true;
+    } else if (activeFilter === 'other') {
+      // Include custom categories under 'other' filter
+      matchesCategory = !predefinedCategories.includes(projectCategory);
+    } else {
+      // Exact match for predefined categories
+      matchesCategory = projectCategory === activeFilter;
+    }
     
     // Apply search filter
     const matchesSearch = !searchTerm || 
@@ -635,33 +701,83 @@ onSnapshot(query(collection(db, 'experience'), orderBy('order')), snapshot => {
     const endDate = exp.toPresent ? 'Present' : exp.toDate ? new Date(exp.toDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '';
     const dateRange = `${startDate} - ${endDate}`;
     
+    // Get company name from any available field
+    const companyName = exp.companyName || exp.company || exp.organization || '';
+    
     li.innerHTML = `
       <div class="experience-content">
         ${dateRange ? `<div class="experience-date">${dateRange}</div>` : ''}
         <h3>${exp.title}</h3>
-        ${exp.companyName ? `<p><strong>${exp.companyName}</strong></p>` : ''}
-        ${exp.role ? `<p>${exp.role}</p>` : ''}
-        ${exp.description ? `<p>${exp.description}</p>` : ''}
-        ${exp.responsibilities ? `<p>${exp.responsibilities}</p>` : ''}
+        ${companyName ? `<p class="experience-company"><strong>${companyName}</strong></p>` : ''}
+        ${exp.role ? `<p class="experience-role">${exp.role}</p>` : ''}
+        ${exp.description ? `<p class="experience-description">${exp.description}</p>` : ''}
+        ${exp.responsibilities ? `<p class="experience-responsibilities">${exp.responsibilities}</p>` : ''}
       </div>
     `;
   });
 });
 
 /* ---------- EDUCATION ---------- */
-onSnapshot(query(collection(db, 'education'), orderBy('order')), snapshot => {
-  const items = snapshot.docs
+onSnapshot(query(collection(db, 'education'), orderBy('order')), (snapshot) => {
+  const realItems = snapshot.docs
     .map(d => d.data())
     .filter(i => i.visible !== false);
-
-  renderListSection('education', items, (li, edu) => {
+  
+  // Always use real data if available, don't add default grade values based on degree type
+  const educationItems = realItems.map(item => ({
+    ...item,
+    // Just map available grade values without adding hardcoded defaults
+    gradeValue: item.gradeValue || 
+               item.cgpa || 
+               item.percentage || 
+               item.score || 
+               item.marks
+  }));
+  
+  renderListSection('education', educationItems, (li, edu) => {
+    let gradeContent = '';
+    
+    // Handle different data structures for backward compatibility
+    let gradeValue = edu.gradeValue || '';
+    let gradeType = edu.grade || edu.gradeType || '';
+    
+    // If gradeValue is empty but we have grade data, try to extract value and type
+    if (!gradeValue && edu.grade && typeof edu.grade === 'string') {
+      // Check if grade field contains both value and type (e.g., "92 Percentage")
+      const gradeParts = edu.grade.split(/\s+/);
+      if (gradeParts.length >= 2) {
+        gradeValue = gradeParts[0];
+        gradeType = gradeParts.slice(1).join(' ');
+      }
+    }
+    
+    // Format grade display based on type and value availability
+    if (gradeValue && gradeType) {
+      if (gradeType.toLowerCase() === 'percentage') {
+        gradeContent = `${gradeValue}%`;
+      } else {
+        gradeContent = `${gradeValue} (${gradeType})`;
+      }
+    } else if (gradeValue) {
+      gradeContent = `${gradeValue}`;
+    } else if (gradeType) {
+      gradeContent = `${gradeType}`;
+    }
+    
     li.innerHTML = `
-      <h3>${edu.degree || 'Degree'}</h3>
-      ${edu.specialization ? `<p><strong>Specialization:</strong> ${edu.specialization}</p>` : ''}
-      <p><strong>Institution:</strong> ${edu.institution || 'Institution'}</p>
-      ${edu.grade ? `<p><strong>Grade:</strong> ${edu.grade}</p>` : ''}
+      <div class="education-card">
+        <h3>${edu.degree || 'Degree'}</h3>
+        ${edu.specialization ? `<p><strong>Specialization:</strong> ${edu.specialization}</p>` : ''}
+        <p><strong>Institution:</strong> ${edu.institution || 'Institution'}</p>
+        ${gradeContent ? `<p><strong>Grade:</strong> ${gradeContent}</p>` : ''}
+      </div>
     `;
   });
+}, (error) => {
+  console.error('Error fetching education data from Firestore:', error);
+  
+  // Fallback to empty array if Firestore fails, don't use hardcoded test data
+  renderListSection('education', [], (li, edu) => {});
 });
 
 /* ---------- ROADMAP ---------- */
@@ -670,11 +786,188 @@ onSnapshot(query(collection(db, 'roadmap'), orderBy('order')), snapshot => {
     .map(d => d.data())
     .filter(i => i.visible !== false);
 
-  renderListSection('roadmap', items, (li, roadmapItem) => {
-    li.innerHTML = `
-      <h3>${roadmapItem.title}</h3>
-      <p>${roadmapItem.description}</p>
+  const roadmapSection = document.getElementById('roadmap');
+  if (!roadmapSection) return;
+
+  // Clear existing content
+  roadmapSection.innerHTML = '<h2>Roadmap</h2><div class="roadmap-container"></div>';
+  const roadmapContainer = roadmapSection.querySelector('.roadmap-container');
+
+  if (!items.length) {
+    roadmapSection.style.display = 'none';
+    return;
+  }
+
+  roadmapSection.style.display = '';
+
+  // Create visual roadmap layout without curved path
+  roadmapContainer.className = 'visual-roadmap';
+  
+  // Create roadmap content container only (no path)
+  roadmapContainer.innerHTML = `
+    <div class="roadmap-content"></div>
+  `;
+  
+  const roadmapContent = roadmapContainer.querySelector('.roadmap-content');
+  
+  // Set CSS variable for number of roadmap items to ensure proper spacing
+  roadmapContent.style.setProperty('--roadmap-items', items.length);
+  
+  items.forEach((item, index) => {
+    const roadmapItem = document.createElement('div');
+    roadmapItem.className = 'visual-roadmap-item';
+    
+    // Calculate overall progress if not provided
+    const overallProgress = item.overall || Math.round(
+      ((item.learned || 0) + 
+       (item.planned || 0) + 
+       (item.executed || 0) + 
+       (item.practiced || 0) + 
+       (item.achieved || 0)) / 5
+    );
+    
+    // Define color mapping for different progression types
+    const typeColors = {
+      learned: '#e74c3c',
+      planned: '#3498db',
+      executed: '#2ecc71',
+      practiced: '#f39c12',
+      achieved: '#9b59b6',
+      overall: '#1abc9c',
+      learning: '#e74c3c' // Add mapping for 'learning' type
+    };
+    
+    // Use actual progression data or empty array if none exists (no simulation)
+    const progressionTimeline = item.progression || [];
+    
+    // Get color for the milestone based on latest progression type or default to planned
+    let latestProgress = progressionTimeline.length > 0 ? progressionTimeline[progressionTimeline.length - 1] : { type: 'planned', value: 0 };
+    const milestoneColor = typeColors[latestProgress.type] || typeColors.overall;
+    
+    // Check if item is truly achieved - should have both achieved type and significant progress
+    const isAchieved = (latestProgress.type === 'achieved' && latestProgress.value >= 100) || (item.achieved || 0) >= 100;
+    const achievementEntry = progressionTimeline.find(entry => entry.type === 'achieved' && entry.value >= 100);
+    const achievementDate = achievementEntry ? achievementEntry.date : null;
+    
+    // Get display settings with defaults
+    const display = item.display || {
+      description: true,
+      summary: true,
+      achievement: true,
+      timeline: true,
+      metrics: true
+    };
+    
+    roadmapItem.innerHTML = `
+      <div class="roadmap-milestone" style="background-color: ${milestoneColor};">
+        ${isAchieved ? `<div class="milestone-achieved-badge">✓</div>` : ''}
+      </div>
+      <div class="roadmap-item-card">
+        <div class="roadmap-item-header">
+          <h3>${item.title}</h3>
+          <div class="roadmap-header-stats">
+            <span class="overall-progress" style="color: ${typeColors.overall};">${overallProgress}%</span>
+            ${isAchieved ? `<span class="achieved-badge">Achieved</span>` : ''}
+          </div>
+        </div>
+        ${display.description && item.description ? `<p class="roadmap-item-description">${item.description}</p>` : ''}
+        ${display.summary ? `
+        <div class="roadmap-item-summary">
+          <div class="progress-indicator" style="background-color: ${typeColors.learned};"></div>
+          <span>${item.learned || 0}% Learned</span>
+          <div class="progress-indicator" style="background-color: ${typeColors.executed};"></div>
+          <span>${item.executed || 0}% Executed</span>
+        </div>
+        ` : ''}
+        ${display.achievement && isAchieved && achievementDate ? `
+        <div class="achievement-info">
+          <div class="achievement-icon">🏆</div>
+          <div class="achievement-details">
+            <div class="achievement-label">Achieved</div>
+            <div class="achievement-date-value">${achievementDate}</div>
+          </div>
+        </div>
+        ` : ''}
+        <div class="roadmap-detailed-progress" style="display: none;">
+          ${display.timeline && progressionTimeline.length > 0 ? `
+          <h5>Progression Timeline</h5>
+          <div class="timeline-container">
+            ${progressionTimeline.map((progress, idx) => {
+              const progressColor = typeColors[progress.type] || typeColors.overall;
+              const isAchievementEntry = progress.type === 'achieved' && progress.value >= 100;
+              return `
+                <div class="timeline-entry ${isAchievementEntry ? 'achievement-highlight' : ''}">
+                  <div class="timeline-date">${progress.date || 'N/A'}</div>
+                  <div class="timeline-type" style="background-color: ${progressColor};">${progress.type || 'Unknown'}</div>
+                  <div class="timeline-value">${progress.value || 0}%</div>
+                  ${isAchievementEntry ? `<div class="achievement-indicator">🎉</div>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+          ` : ''}
+          
+          ${display.metrics ? `
+          <h5>Detailed Metrics</h5>
+          <div class="roadmap-metrics-grid">
+            <div class="metric-card" style="border-color: ${typeColors.learned};">
+              <div class="metric-label">Learned</div>
+              <div class="metric-value">${item.learned || 0}%</div>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width: ${item.learned || 0}%; background-color: ${typeColors.learned};"></div>
+              </div>
+            </div>
+            
+            <div class="metric-card" style="border-color: ${typeColors.planned};">
+              <div class="metric-label">Planned</div>
+              <div class="metric-value">${item.planned || 0}%</div>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width: ${item.planned || 0}%; background-color: ${typeColors.planned};"></div>
+              </div>
+            </div>
+            
+            <div class="metric-card" style="border-color: ${typeColors.executed};">
+              <div class="metric-label">Executed</div>
+              <div class="metric-value">${item.executed || 0}%</div>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width: ${item.executed || 0}%; background-color: ${typeColors.executed};"></div>
+              </div>
+            </div>
+            
+            <div class="metric-card" style="border-color: ${typeColors.practiced};">
+              <div class="metric-label">Practiced</div>
+              <div class="metric-value">${item.practiced || 0}%</div>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width: ${item.practiced || 0}%; background-color: ${typeColors.practiced};"></div>
+              </div>
+            </div>
+            
+            <div class="metric-card" style="border-color: ${typeColors.achieved};">
+              <div class="metric-label">Achieved</div>
+              <div class="metric-value">${item.achieved || 0}%</div>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width: ${item.achieved || 0}%; background-color: ${typeColors.achieved};"></div>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+        ${(display.timeline || display.metrics) ? `<button class="expand-btn">${item.description ? 'View Details' : 'No Details'}</button>` : ''}
+      </div>
     `;
+    
+    // Add click event to toggle detailed progress
+    const expandBtn = roadmapItem.querySelector('.expand-btn');
+    const detailedProgress = roadmapItem.querySelector('.roadmap-detailed-progress');
+    
+    expandBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      detailedProgress.style.display = detailedProgress.style.display === 'none' ? 'block' : 'none';
+      expandBtn.textContent = detailedProgress.style.display === 'none' ? 'View Details' : 'Hide Details';
+      roadmapItem.classList.toggle('expanded');
+    });
+    
+    roadmapContent.appendChild(roadmapItem);
   });
 });
 

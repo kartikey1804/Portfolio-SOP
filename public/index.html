@@ -12,19 +12,37 @@
     <meta property="og:type" content="website">
 
     <!-- PWA Support -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
     <meta name="theme-color" content="#ffffff">
 
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main CSS -->
     <link rel="stylesheet" href="/css/main.css">
+    
     <!-- Chart.js for Interactive Skill Visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Loading Animation -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-container">
+            <div class="loading-circle"></div>
+            <div class="loading-text">Loading...</div>
+            <div class="loading-progress"></div>
+        </div>
+    </div>
     <header>
         <nav>
-            <ul>
+            <!-- Mobile Menu Toggle -->
+            <button type="button" class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                <span class="menu-icon"></span>
+                <span class="menu-icon"></span>
+                <span class="menu-icon"></span>
+            </button>
+            
+            <ul id="nav-menu">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#skills">Skills</a></li>
@@ -41,30 +59,46 @@
                 <li><a href="#contact">Contact</a></li>
                 <li>
                     <div class="hire-me-container">
-                        <button id="hire-me-btn">Hire Me</button>
+                        <button type="button" id="hire-me-btn">Hire Me</button>
                         <div class="hire-me-options">
-                            <button id="mail-system-default">System Default</button>
-                            <button id="mail-gmail">Gmail</button>
-                            <button id="mail-outlook">Outlook</button>
-                            <button id="mail-copy">Copy Email</button>
+                            <button type="button" id="mail-system-default">System Default</button>
+                            <button type="button" id="mail-gmail">Gmail</button>
+                            <button type="button" id="mail-outlook">Outlook</button>
+                            <button type="button" id="mail-copy">Copy Email</button>
                         </div>
                     </div>
                 </li>
             </ul>
             <!-- Theme Switcher -->
             <div class="theme-switcher">
-                <button id="theme-light">Light</button>
-                <button id="theme-dark">Dark</button>
-                <button id="theme-system">System</button>
+                <button type="button" id="theme-light">Light</button>
+                <button type="button" id="theme-dark">Dark</button>
+                <button type="button" id="theme-system">System</button>
             </div>
-            <div id="firestore-status-indicator" class="firestore-status" role="status" aria-live="polite"></div>
+
         </nav>
     </header>
 
     <main>
         <!-- Sections rendered dynamically from Firestore -->
-        <section id="home">
-            <h1>Welcome to My Portfolio</h1>
+        <section id="home" class="hero-section">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">Innovative Solutions for Modern Challenges</h1>
+                    <p class="hero-subtitle">Bridging the gap between technology and human experience through creative problem-solving</p>
+                    <div class="hero-buttons">
+                        <a href="#projects" class="btn btn-primary">Explore Projects</a>
+                        <a href="#contact" class="btn btn-secondary">Get in Touch</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-animation"></div>
+                </div>
+            </div>
+            <div class="hero-scroll-indicator">
+                <span>Scroll to explore</span>
+                <div class="scroll-line"></div>
+            </div>
             <div id="status-welcome" class="status-container"></div>
         </section>
 
@@ -94,19 +128,14 @@
                     <input type="text" id="project-search" placeholder="Search projects...">
                 </div>
                 <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="web">Web Dev</button>
-                    <button class="filter-btn" data-filter="mobile">Mobile</button>
-                    <button class="filter-btn" data-filter="design">Design</button>
-                    <button class="filter-btn" data-filter="other">Other</button>
+                    <button type="button" class="filter-btn active" data-filter="all">All</button>
+                    <button type="button" class="filter-btn" data-filter="web">Web Dev</button>
+                    <button type="button" class="filter-btn" data-filter="mobile">Mobile</button>
+                    <button type="button" class="filter-btn" data-filter="design">Design</button>
+                    <button type="button" class="filter-btn" data-filter="other">Other</button>
                 </div>
             </div>
             <ul id="projects-list"></ul>
-        </section>
-
-        <section id="social-links">
-            <h2>Social Links</h2>
-            <div id="social-links-container"></div>
         </section>
 
         <section id="experience">
@@ -114,19 +143,14 @@
             <ul id="experience-list"></ul>
         </section>
 
-        <section id="education">
-            <h2>Education</h2>
-            <ul id="education-list"></ul>
-        </section>
-
-        <section id="roadmap">
-            <h2>Roadmap</h2>
-            <ul id="roadmap-list"></ul>
-        </section>
-
         <section id="achievements">
             <h2>Achievements</h2>
             <ul id="achievements-list"></ul>
+        </section>
+
+        <section id="education">
+            <h2>Education</h2>
+            <ul id="education-list"></ul>
         </section>
 
         <section id="certificates">
@@ -139,9 +163,19 @@
             <div id="testimonials-container"></div>
         </section>
 
+        <section id="roadmap">
+            <h2>Roadmap</h2>
+            <ul id="roadmap-list"></ul>
+        </section>
+
         <section id="reading-list">
             <h2>Reading List</h2>
             <div id="reading-list-container"></div>
+        </section>
+
+        <section id="social-links">
+            <h2>Social Links</h2>
+            <div id="social-links-container"></div>
         </section>
 
         <section id="contact">
@@ -176,24 +210,70 @@
     </main>
 
     <footer>
-        <p>&copy; 2026 My Portfolio</p>
-        <div id="status-footer" class="status-container"></div>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About Me</h3>
+                <p>Creative technologist specializing in innovative solutions for modern challenges. Bridging technology and human experience through creative problem-solving.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#skills">Skills</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="#projects">Web Development</a></li>
+                    <li><a href="#projects">Mobile App Development</a></li>
+                    <li><a href="#projects">UI/UX Design</a></li>
+                    <li><a href="#projects">AI Solutions</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="mailto:kartikeypandey1804@gmail.com">Email Me</a></li>
+                    <li><a href="#contact">Contact Form</a></li>
+                </ul>
+                <div class="footer-social-links">
+                    <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 My Portfolio. All rights reserved.</p>
+            <div id="status-footer" class="status-container">
+                <button type="button" class="admin-login-btn" onclick="window.location.href='https://admin-cms.example.com'">
+                    <i class="fas fa-lock"></i> Admin Login
+                </button>
+            </div>
+        </div>
     </footer>
 
     <!-- Lightbox Gallery -->
     <div class="lightbox" id="lightbox">
         <div class="lightbox-content">
-            <button class="lightbox-nav prev" id="lightbox-prev">&lt;</button>
+            <button type="button" class="lightbox-nav prev" id="lightbox-prev">&lt;</button>
             <img src="" alt="Lightbox Image" class="lightbox-image" id="lightbox-image">
-            <button class="lightbox-nav next" id="lightbox-next">&gt;</button>
+            <button type="button" class="lightbox-nav next" id="lightbox-next">&gt;</button>
             <div class="lightbox-caption" id="lightbox-caption"></div>
         </div>
-        <button class="lightbox-close" id="lightbox-close">&times;</button>
+        <button type="button" class="lightbox-close" id="lightbox-close">&times;</button>
     </div>
 
     <!-- Firebase Initialization -->
     <script type="module" src="/js/firebase.js"></script>
     <script type="module" src="/js/main.js"></script>
+    <!-- Enhanced Cognitive Neural Network -->
+
     <!-- PWA Service Worker Registration -->
     <script type="module" src="/js/pwa.js"></script>
     <!-- Analytics -->

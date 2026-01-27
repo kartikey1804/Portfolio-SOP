@@ -10,7 +10,8 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  setDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 // Import admin authentication check
 import { isAdminLoggedIn } from './auth.js';
@@ -131,6 +132,8 @@ if (logoutBtn) {
 // ---------- FIRESTORE DATA HANDLING ----------
 // Function to load all data from Firestore when authenticated
 const loadFirestoreData = () => {
+  // Load Hero data
+  loadHeroData();
   // Load About data
   loadAboutData();
   // Load Skills data
@@ -379,6 +382,110 @@ if (statusForm) {
       showFeedback('Failed to save status: ' + error.message, false);
     }
   });
+};
+
+// ---------- HERO SECTION ----------
+const loadHeroData = () => {
+  const heroList = document.getElementById('hero-list');
+  if (!heroList) return;
+
+  // Real-time listener for Hero data
+  onSnapshot(doc(db, 'hero', 'main'), (docSnap) => {
+    heroList.innerHTML = '';
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span>${data.name || 'Hero Content'}</span>
+        <div>
+          <button onclick="editHero('main', ${JSON.stringify(data).replace(/"/g, '&quot;')})">Edit</button>
+          <button class="danger" onclick="deleteHero('main')">Delete</button>
+        </div>
+      `;
+      heroList.appendChild(li);
+    }
+  });
+};
+
+// Global functions for Hero section
+globalThis.editHero = (id, data) => {
+  document.getElementById('hero-id').value = id;
+  document.getElementById('hero-name').value = data.name || '';
+  document.getElementById('hero-role').value = data.role || '';
+  document.getElementById('hero-value-proposition').value = data.valueProposition || '';
+  document.getElementById('hero-availability').value = data.availability || 'available';
+  document.getElementById('hero-cta-text').value = data.ctaText || '';
+  document.getElementById('hero-visible').checked = data.visible !== false;
+};
+
+globalThis.deleteHero = async (id) => {
+  if (confirm('Are you sure you want to delete this hero content?')) {
+    try {
+      const isAdmin = await isAdminLoggedIn();
+      if (!isAdmin) {
+        showFeedback('Please login with admin credentials!', false);
+        return;
+      }
+      await deleteDoc(doc(db, 'hero', id));
+      showFeedback('Hero content deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting hero content:', error);
+      showFeedback('Failed to delete hero content: ' + error.message, false);
+    }
+  }
+};
+
+const initHeroForm = () => {
+  const heroForm = document.getElementById('hero-form');
+  if (!heroForm) return;
+
+  heroForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Check if user is authenticated and has admin privileges
+      const isAdmin = await isAdminLoggedIn();
+      if (!isAdmin) {
+        showFeedback('Please login with admin credentials!', false);
+        return;
+      }
+      
+      const id = document.getElementById('hero-id').value || 'main';
+      const name = document.getElementById('hero-name').value;
+      const role = document.getElementById('hero-role').value;
+      const valueProposition = document.getElementById('hero-value-proposition').value;
+      const availability = document.getElementById('hero-availability').value;
+      const ctaText = document.getElementById('hero-cta-text').value;
+      const visible = document.getElementById('hero-visible').checked;
+
+      const heroData = {
+        name,
+        role,
+        valueProposition,
+        availability,
+        ctaText,
+        visible,
+        updatedAt: new Date().toISOString()
+      };
+
+      await setDoc(doc(db, 'hero', id), heroData);
+      showFeedback('Hero content saved successfully!');
+      heroForm.reset();
+      document.getElementById('hero-id').value = '';
+    } catch (error) {
+      console.error('Error saving hero content:', error);
+      showFeedback('Failed to save hero content: ' + error.message, false);
+    }
+  });
+
+  // New button for Hero section
+  const heroNewBtn = document.getElementById('hero-new-btn');
+  if (heroNewBtn) {
+    heroNewBtn.addEventListener('click', () => {
+      heroForm.reset();
+      document.getElementById('hero-id').value = '';
+    });
+  }
 };
 
 // ---------- ABOUT SECTION ----------
@@ -774,8 +881,44 @@ globalThis.editProject = (id, data) => {
   document.getElementById('project-image-urls').value = Array.isArray(data.imageUrls) ? data.imageUrls.join('\n') : '';
   document.getElementById('project-github-url').value = data.githubUrl || '';
   document.getElementById('project-live-url').value = data.liveUrl || '';
+  
+  // Handle project category
+  const category = data.category || '';
+  const categorySelect = document.getElementById('project-category');
+  const customCategoryGroup = document.getElementById('custom-category-group');
+  const customCategoryInput = document.getElementById('project-custom-category');
+  
+  // Check if category is one of the predefined options
+  const predefinedCategories = ['web', 'mobile', 'design', 'data'];
+  if (predefinedCategories.includes(category)) {
+    categorySelect.value = category;
+    customCategoryGroup.style.display = 'none';
+    customCategoryInput.value = '';
+  } else {
+    categorySelect.value = 'other';
+    customCategoryGroup.style.display = 'block';
+    customCategoryInput.value = category || '';
+  }
+  
   document.getElementById('project-order').value = data.order || 0;
   document.getElementById('project-visible').checked = data.visible !== false;
+};
+
+// Initialize project category event listener
+const initProjectCategoryListener = () => {
+  const categorySelect = document.getElementById('project-category');
+  const customCategoryGroup = document.getElementById('custom-category-group');
+  
+  if (categorySelect && customCategoryGroup) {
+    categorySelect.addEventListener('change', (e) => {
+      if (e.target.value === 'other') {
+        customCategoryGroup.style.display = 'block';
+      } else {
+        customCategoryGroup.style.display = 'none';
+        document.getElementById('project-custom-category').value = '';
+      }
+    });
+  }
 };
 
 globalThis.deleteProject = async (id) => {
@@ -901,6 +1044,7 @@ globalThis.editEducation = (id, data) => {
   document.getElementById('education-degree').value = data.degree || '';
   document.getElementById('education-specialization').value = data.specialization || '';
   document.getElementById('education-institution').value = data.institution || '';
+  document.getElementById('education-gradeValue').value = data.gradeValue || '';
   document.getElementById('education-grade').value = data.grade || '';
   document.getElementById('education-order').value = data.order || 0;
   document.getElementById('education-visible').checked = data.visible !== false;
@@ -951,9 +1095,75 @@ globalThis.editRoadmap = (id, data) => {
   document.getElementById('roadmap-id').value = id;
   document.getElementById('roadmap-title').value = data.title || '';
   document.getElementById('roadmap-description').value = data.description || '';
-  document.getElementById('roadmap-progress').value = data.progress || 0;
+  
+  // Update summary metrics
+  document.getElementById('roadmap-learned').value = data.learned || 0;
+  document.getElementById('roadmap-planned').value = data.planned || 0;
+  document.getElementById('roadmap-executed').value = data.executed || 0;
+  document.getElementById('roadmap-practiced').value = data.practiced || 0;
+  document.getElementById('roadmap-achieved').value = data.achieved || 0;
+  document.getElementById('roadmap-overall').value = data.overall || 0;
+  
   document.getElementById('roadmap-order').value = data.order || 0;
   document.getElementById('roadmap-visible').checked = data.visible !== false;
+  
+  // Update display options
+  const displaySettings = data.display || {
+    description: true,
+    summary: true,
+    achievement: true,
+    timeline: true,
+    metrics: true
+  };
+  document.getElementById('roadmap-display-description').checked = displaySettings.description;
+  document.getElementById('roadmap-display-summary').checked = displaySettings.summary;
+  document.getElementById('roadmap-display-achievement').checked = displaySettings.achievement;
+  document.getElementById('roadmap-display-timeline').checked = displaySettings.timeline;
+  document.getElementById('roadmap-display-metrics').checked = displaySettings.metrics;
+  
+  // Update progression timeline entries
+  const progressionContainer = document.getElementById('roadmap-progression-container');
+  const progressionEntries = data.progression || [
+    { date: '2023-01', type: 'planned', value: 0 }
+  ];
+  
+  // Clear existing entries
+  progressionContainer.innerHTML = '';
+  
+  // Add each progression entry
+  progressionEntries.forEach((entry, index) => {
+    const newEntry = document.createElement('div');
+    newEntry.className = 'progression-entry';
+    newEntry.innerHTML = `
+      <div class="form-row">
+        <div class="form-group">
+          <label for="progression-date-${index}">Date (YYYY-MM)</label>
+          <input type="text" class="progression-date" placeholder="2023-01" value="${entry.date || '2023-01'}"/>
+        </div>
+        <div class="form-group">
+          <label for="progression-type-${index}">Type</label>
+          <select class="progression-type">
+            <option value="planned" ${entry.type === 'planned' ? 'selected' : ''}>Planned</option>
+            <option value="learning" ${entry.type === 'learning' ? 'selected' : ''}>Learning</option>
+            <option value="practiced" ${entry.type === 'practiced' ? 'selected' : ''}>Practiced</option>
+            <option value="executed" ${entry.type === 'executed' ? 'selected' : ''}>Executed</option>
+            <option value="achieved" ${entry.type === 'achieved' ? 'selected' : ''}>Achieved</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="progression-value-${index}">Value (%)</label>
+          <input type="number" class="progression-value" placeholder="0-100" min="0" max="100" value="${entry.value || 0}"/>
+        </div>
+        <button type="button" class="remove-progression-btn">Remove</button>
+      </div>
+    `;
+    progressionContainer.appendChild(newEntry);
+    
+    // Add event listener for remove button
+    newEntry.querySelector('.remove-progression-btn').addEventListener('click', () => {
+      newEntry.remove();
+    });
+  });
 };
 
 globalThis.deleteRoadmap = async (id) => {
@@ -1277,6 +1487,7 @@ onAuthStateChanged(auth, (user) => {
     toggleAdminView(true);
     initializeStatusChecker();
     loadFirestoreData();
+    initHeroForm();
   } else {
     toggleAdminView(false);
   }
@@ -1422,6 +1633,9 @@ loadTestimonialsData();
 // ---------- PROJECTS FORM SUBMISSION ----------
 const projectsForm = document.getElementById('projects-form');
 if (projectsForm) {
+  // Initialize category listener
+  initProjectCategoryListener();
+  
   projectsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -1439,6 +1653,23 @@ if (projectsForm) {
       const imageUrls = document.getElementById('project-image-urls').value.split('\n').filter(url => url.trim() !== '');
       const githubUrl = document.getElementById('project-github-url').value;
       const liveUrl = document.getElementById('project-live-url').value;
+      
+      // Get project category
+      const categorySelect = document.getElementById('project-category');
+      const selectedCategory = categorySelect.value;
+      let category = selectedCategory;
+      
+      // If 'other' is selected, use the custom category value
+      if (selectedCategory === 'other') {
+        const customCategory = document.getElementById('project-custom-category').value.trim();
+        if (customCategory) {
+          category = customCategory.toLowerCase();
+        } else {
+          // Default to 'web' if no category is provided
+          category = 'web';
+        }
+      }
+      
       const order = normalizeNumber(document.getElementById('project-order').value);
       const visible = document.getElementById('project-visible').checked;
 
@@ -1448,6 +1679,7 @@ if (projectsForm) {
         imageUrls,
         githubUrl: githubUrl || null,
         liveUrl: liveUrl || null,
+        category,
         order,
         visible,
         updatedAt: new Date().toISOString()
@@ -1565,6 +1797,7 @@ if (educationForm) {
       const degree = document.getElementById('education-degree').value;
       const specialization = document.getElementById('education-specialization').value;
       const institution = document.getElementById('education-institution').value;
+      const gradeValue = document.getElementById('education-gradeValue').value;
       const grade = document.getElementById('education-grade').value;
       const order = normalizeNumber(document.getElementById('education-order').value);
       const visible = document.getElementById('education-visible').checked;
@@ -1573,6 +1806,7 @@ if (educationForm) {
         degree,
         specialization,
         institution,
+        gradeValue,
         grade,
         order,
         visible,
@@ -1610,6 +1844,54 @@ if (educationForm) {
 // ---------- ROADMAP FORM SUBMISSION ----------
 const roadmapForm = document.getElementById('roadmap-form');
 if (roadmapForm) {
+  // Add progression entry functionality
+  const progressionContainer = document.getElementById('roadmap-progression-container');
+  const addProgressionBtn = document.getElementById('add-progression-btn');
+  
+  if (addProgressionBtn) {
+    addProgressionBtn.addEventListener('click', () => {
+      const entryCount = progressionContainer.querySelectorAll('.progression-entry').length;
+      const newEntry = document.createElement('div');
+      newEntry.className = 'progression-entry';
+      newEntry.innerHTML = `
+        <div class="form-row">
+          <div class="form-group">
+            <label for="progression-date-${entryCount}">Date (YYYY-MM)</label>
+            <input type="text" class="progression-date" placeholder="2023-01" value="2023-01"/>
+          </div>
+          <div class="form-group">
+            <label for="progression-type-${entryCount}">Type</label>
+            <select class="progression-type">
+              <option value="planned">Planned</option>
+              <option value="learning">Learning</option>
+              <option value="practiced">Practiced</option>
+              <option value="executed">Executed</option>
+              <option value="achieved">Achieved</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="progression-value-${entryCount}">Value (%)</label>
+            <input type="number" class="progression-value" placeholder="0-100" min="0" max="100" value="0"/>
+          </div>
+          <button type="button" class="remove-progression-btn">Remove</button>
+        </div>
+      `;
+      progressionContainer.appendChild(newEntry);
+      
+      // Add event listener for new remove button
+      newEntry.querySelector('.remove-progression-btn').addEventListener('click', () => {
+        newEntry.remove();
+      });
+    });
+  }
+  
+  // Add event listeners for existing remove buttons
+  progressionContainer.querySelectorAll('.remove-progression-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.progression-entry').remove();
+    });
+  });
+  
   roadmapForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -1624,16 +1906,54 @@ if (roadmapForm) {
       const id = document.getElementById('roadmap-id').value;
       const title = document.getElementById('roadmap-title').value;
       const description = document.getElementById('roadmap-description').value;
-      const progress = normalizeNumber(document.getElementById('roadmap-progress').value);
+      
+      // Get summary metrics
+      const learned = normalizeNumber(document.getElementById('roadmap-learned').value);
+      const planned = normalizeNumber(document.getElementById('roadmap-planned').value);
+      const executed = normalizeNumber(document.getElementById('roadmap-executed').value);
+      const practiced = normalizeNumber(document.getElementById('roadmap-practiced').value);
+      const achieved = normalizeNumber(document.getElementById('roadmap-achieved').value);
+      const overall = normalizeNumber(document.getElementById('roadmap-overall').value);
+      
+      // Get progression timeline entries
+      const progressionEntries = [];
+      const entries = progressionContainer.querySelectorAll('.progression-entry');
+      entries.forEach(entry => {
+        const date = entry.querySelector('.progression-date').value;
+        const type = entry.querySelector('.progression-type').value;
+        const value = normalizeNumber(entry.querySelector('.progression-value').value);
+        progressionEntries.push({ date, type, value });
+      });
+      
       const order = normalizeNumber(document.getElementById('roadmap-order').value);
       const visible = document.getElementById('roadmap-visible').checked;
+      
+      // Get display options
+      const displayDescription = document.getElementById('roadmap-display-description').checked;
+      const displaySummary = document.getElementById('roadmap-display-summary').checked;
+      const displayAchievement = document.getElementById('roadmap-display-achievement').checked;
+      const displayTimeline = document.getElementById('roadmap-display-timeline').checked;
+      const displayMetrics = document.getElementById('roadmap-display-metrics').checked;
 
       const roadmapData = {
         title,
         description,
-        progress,
+        learned,
+        planned,
+        executed,
+        practiced,
+        achieved,
+        overall,
+        progression: progressionEntries,
         order,
         visible,
+        display: {
+          description: displayDescription,
+          summary: displaySummary,
+          achievement: displayAchievement,
+          timeline: displayTimeline,
+          metrics: displayMetrics
+        },
         updatedAt: new Date().toISOString()
       };
 
@@ -1649,6 +1969,40 @@ if (roadmapForm) {
       }
       roadmapForm.reset();
       document.getElementById('roadmap-id').value = '';
+      
+      // Reset progression container to have one entry
+      progressionContainer.innerHTML = `
+        <div class="progression-entry">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="progression-date-0">Date (YYYY-MM)</label>
+              <input type="text" class="progression-date" placeholder="2023-01" value="2023-01"/>
+            </div>
+            <div class="form-group">
+              <label for="progression-type-0">Type</label>
+              <select class="progression-type">
+                <option value="planned">Planned</option>
+                <option value="learning">Learning</option>
+                <option value="practiced">Practiced</option>
+                <option value="executed">Executed</option>
+                <option value="achieved">Achieved</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="progression-value-0">Value (%)</label>
+              <input type="number" class="progression-value" placeholder="0-100" min="0" max="100" value="0"/>
+            </div>
+            <button type="button" class="remove-progression-btn">Remove</button>
+          </div>
+        </div>
+      `;
+      
+      // Re-add event listeners for remove buttons
+      progressionContainer.querySelectorAll('.remove-progression-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.closest('.progression-entry').remove();
+        });
+      });
     } catch (error) {
       console.error('Error saving roadmap:', error);
       showFeedback('Failed to save roadmap: ' + error.message, false);
@@ -1661,6 +2015,40 @@ if (roadmapForm) {
     roadmapNewBtn.addEventListener('click', () => {
       roadmapForm.reset();
       document.getElementById('roadmap-id').value = '';
+      
+      // Reset progression container to have one entry
+      progressionContainer.innerHTML = `
+        <div class="progression-entry">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="progression-date-0">Date (YYYY-MM)</label>
+              <input type="text" class="progression-date" placeholder="2023-01" value="2023-01"/>
+            </div>
+            <div class="form-group">
+              <label for="progression-type-0">Type</label>
+              <select class="progression-type">
+                <option value="planned">Planned</option>
+                <option value="learning">Learning</option>
+                <option value="practiced">Practiced</option>
+                <option value="executed">Executed</option>
+                <option value="achieved">Achieved</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="progression-value-0">Value (%)</label>
+              <input type="number" class="progression-value" placeholder="0-100" min="0" max="100" value="0"/>
+            </div>
+            <button type="button" class="remove-progression-btn">Remove</button>
+          </div>
+        </div>
+      `;
+      
+      // Re-add event listeners for remove buttons
+      progressionContainer.querySelectorAll('.remove-progression-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.closest('.progression-entry').remove();
+        });
+      });
     });
   }
 }

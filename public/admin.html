@@ -28,23 +28,34 @@
   <!-- SIDEBAR -->
   <aside class="admin-sidebar">
     <h2>Admin</h2>
+    <!-- Overview & Analytics -->
     <a href="#stats">Dashboard</a>
     <a href="#analytics">Analytics</a>
-    <a href="#status">Status</a>
+    
+    <!-- Content Sections (aligned with site order) -->
+    <a href="#hero">Hero</a>
     <a href="#about">About</a>
     <a href="#skills">Skills</a>
     <a href="#projects">Projects</a>
     <a href="#experience">Experience</a>
-    <a href="#education">Education</a>
-    <a href="#roadmap">Roadmap</a>
     <a href="#achievements">Achievements</a>
+    <a href="#education">Education</a>
     <a href="#certificates">Certificates</a>
-    <a href="#resume">Resume</a>
-    <a href="#social">Social Links</a>
     <a href="#testimonials">Testimonials</a>
+    <a href="#roadmap">Roadmap</a>
+    
+    <!-- Professional Profile -->
+    <a href="#resume">Resume</a>
+    
+    <!-- Social & Contact -->
+    <a href="#social">Social Links</a>
     <a href="#contacts">Contact Submissions</a>
+    
+    <!-- Settings & Management -->
+    <a href="#status">Status</a>
     <a href="#scheduler">Content Scheduler</a>
-    <button id="logout-btn" class="danger">Logout</button>
+    
+    <button type="button" id="logout-btn" class="danger">Logout</button>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -54,16 +65,11 @@
     <div class="admin-header">
         <h1>Admin Dashboard</h1>
         <div class="theme-switcher">
-          <button id="theme-light">Light</button>
-          <button id="theme-dark">Dark</button>
-          <button id="theme-system">System</button>
+          <button type="button" id="theme-light">Light</button>
+          <button type="button" id="theme-dark">Dark</button>
+          <button type="button" id="theme-system">System</button>
         </div>
-        <div id="firestore-status-indicator"
-             class="firestore-status connecting"
-             role="status"
-             aria-live="polite">
-          Firestore Connecting...
-        </div>
+
       </div>
 
     <!-- STATS -->
@@ -129,33 +135,31 @@
       </div>
     </div>
 
-    <!-- CONTENT SECTIONS -->
-    <div class="admin-section" id="status">
-      <h2>Status Management</h2>
-      <form id="status-form">
+    <!-- HERO SECTION -->
+    <div class="admin-section" id="hero">
+      <h2>Hero Section</h2>
+      <form id="hero-form">
+        <input type="hidden" id="hero-id">
+        <input type="text" id="hero-name" placeholder="Your Name" />
+        <input type="text" id="hero-role" placeholder="Your Role (e.g., Software Engineer / Full-Stack)" />
+        <input type="text" id="hero-value-proposition" placeholder="One-line Value Proposition" />
         <div class="form-group">
-          <label for="status-type">Status Type</label>
-          <select id="status-type">
-            <option value="available">Available</option>
-            <option value="working">Working</option>
+          <label for="hero-availability">Availability Status</label>
+          <select id="hero-availability">
+            <option value="available">Available for Work</option>
+            <option value="open-to-offers">Open to Offers</option>
             <option value="busy">Busy</option>
             <option value="not-available">Not Available</option>
-            <option value="custom">Custom</option>
           </select>
         </div>
-        <div class="form-group">
-          <label for="status-label">Status Label</label>
-          <input type="text" id="status-label" placeholder="Enter custom status label" />
-        </div>
-        <div class="form-group">
-          <label for="status-visible">
-            <input type="checkbox" id="status-visible" checked /> Visible on Public Page
-          </label>
-        </div>
-        <button type="submit">Save Status</button>
+        <input type="text" id="hero-cta-text" placeholder="CTA Button Text (e.g., 'Hire Me', 'Get in Touch')" />
+        <label><input type="checkbox" id="hero-visible" checked> Visible</label>
+        <button type="submit">Save Hero Content</button>
+        <button type="button" id="hero-new-btn">New</button>
       </form>
+      <ul id="hero-list"></ul>
     </div>
-    
+
     <div class="admin-section" id="about">
       <h2>About</h2>
       <form id="about-form">
@@ -213,6 +217,23 @@
         <textarea id="project-image-urls" placeholder="Image URLs (one per line)"></textarea>
         <input type="url" id="project-github-url" placeholder="GitHub URL"/>
         <input type="url" id="project-live-url" placeholder="Live URL"/>
+        
+        <div class="form-group">
+          <label for="project-category">Project Type</label>
+          <select id="project-category">
+            <option value="">Select Category</option>
+            <option value="web">Web</option>
+            <option value="mobile">Mobile</option>
+            <option value="design">Design</option>
+            <option value="data">Data</option>
+            <option value="other">Other (specify below)</option>
+          </select>
+        </div>
+        <div class="form-group" id="custom-category-group" style="display: none;">
+          <label for="project-custom-category">Custom Category Name</label>
+          <input type="text" id="project-custom-category" placeholder="Enter custom category name"/>
+        </div>
+        
         <input type="number" id="project-order" placeholder="Order" value="0"/>
         <label><input type="checkbox" id="project-visible" checked> Visible</label>
         <button type="submit">Save Project</button>
@@ -243,37 +264,7 @@
       <ul id="experience-list"></ul>
     </div>
 
-    <div class="admin-section" id="education">
-      <h2>Education</h2>
-      <form id="education-form">
-        <input type="hidden" id="education-id">
-        <input type="text" id="education-degree" placeholder="Degree"/>
-        <input type="text" id="education-specialization" placeholder="Specialization"/>
-        <input type="text" id="education-institution" placeholder="Institution"/>
-        <input type="text" id="education-grade" placeholder="Percentage/CGPA"/>
-        <input type="number" id="education-order" placeholder="Order" value="0"/>
-        <label><input type="checkbox" id="education-visible" checked> Visible</label>
-        <button type="submit">Save Education</button>
-        <button type="button" id="education-new-btn">New</button>
-      </form>
-      <ul id="education-list"></ul>
-    </div>
-
-    <div class="admin-section" id="roadmap">
-      <h2>Roadmap</h2>
-      <form id="roadmap-form">
-        <input type="hidden" id="roadmap-id">
-        <input id="roadmap-title" placeholder="Roadmap Title"/>
-        <textarea id="roadmap-description" placeholder="Roadmap Description"></textarea>
-        <input type="number" id="roadmap-progress" placeholder="Progress (0-100)" min="0" max="100" value="0"/>
-        <input type="number" id="roadmap-order" placeholder="Order" value="0"/>
-        <label><input type="checkbox" id="roadmap-visible" checked> Visible</label>
-        <button type="submit">Save Roadmap</button>
-        <button type="button" id="roadmap-new-btn">New</button>
-      </form>
-      <ul id="roadmap-list"></ul>
-    </div>
-
+    <!-- ACHIEVEMENTS SECTION -->
     <div class="admin-section" id="achievements">
       <h2>Achievements</h2>
       <form id="achievements-form">
@@ -288,6 +279,31 @@
       <ul id="achievements-list"></ul>
     </div>
 
+    <!-- EDUCATION SECTION -->
+    <div class="admin-section" id="education">
+      <h2>Education</h2>
+      <form id="education-form">
+        <input type="hidden" id="education-id">
+        <input type="text" id="education-degree" placeholder="Degree"/>
+        <input type="text" id="education-specialization" placeholder="Specialization"/>
+        <input type="text" id="education-institution" placeholder="Institution"/>
+        <div class="grade-fields">
+          <input type="number" id="education-gradeValue" placeholder="Grade Value (e.g., 8.5, 92)" step="0.1" min="0" max="100"/>
+          <select id="education-grade">
+            <option value="">Select Grade Type</option>
+            <option value="CGPA">CGPA</option>
+            <option value="Percentage">Percentage</option>
+          </select>
+        </div>
+        <input type="number" id="education-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="education-visible" checked> Visible</label>
+        <button type="submit">Save Education</button>
+        <button type="button" id="education-new-btn">New</button>
+      </form>
+      <ul id="education-list"></ul>
+    </div>
+
+    <!-- CERTIFICATES SECTION -->
     <div class="admin-section" id="certificates">
       <h2>Certificates</h2>
       <form id="certificates-form">
@@ -304,34 +320,7 @@
       <ul id="certificates-list"></ul>
     </div>
 
-    <div class="admin-section" id="resume">
-      <h2>Resume</h2>
-      <form id="resume-form">
-        <input type="hidden" id="resume-id">
-        <input type="text" id="resume-name" placeholder="Resume Name"/>
-        <input type="url" id="resume-url" placeholder="Resume URL"/>
-        <input type="number" id="resume-order" placeholder="Order" value="0"/>
-        <label><input type="checkbox" id="resume-visible" checked> Visible</label>
-        <button type="submit">Save Resume</button>
-        <button type="button" id="resume-new-btn">New</button>
-      </form>
-      <ul id="resume-list"></ul>
-    </div>
-
-    <div class="admin-section" id="social">
-      <h2>Social Links</h2>
-      <form id="social-links-form">
-        <input type="hidden" id="social-id">
-        <input id="social-platform" placeholder="Platform (e.g., GitHub, LinkedIn)"/>
-        <input id="social-url" placeholder="URL"/>
-        <input type="number" id="social-order" placeholder="Order" value="0"/>
-        <label><input type="checkbox" id="social-visible" checked> Visible</label>
-        <button type="submit">Save Social Link</button>
-        <button type="button" id="social-new-btn">New</button>
-      </form>
-      <ul id="social-links-list"></ul>
-    </div>
-
+    <!-- TESTIMONIALS SECTION -->
     <div class="admin-section" id="testimonials">
       <h2>Testimonials</h2>
       <form id="testimonials-form">
@@ -353,12 +342,155 @@
       <ul id="testimonials-list"></ul>
     </div>
 
+    <!-- ROADMAP SECTION -->
+    <div class="admin-section" id="roadmap">
+      <h2>Roadmap</h2>
+      <form id="roadmap-form">
+        <input type="hidden" id="roadmap-id">
+        <input type="text" id="roadmap-title" placeholder="Techstack / Topic" required/>
+        <textarea id="roadmap-description" placeholder="Description"></textarea>
+        
+        <h3>Progression Timeline</h3>
+        <div id="roadmap-progression-container">
+          <div class="progression-entry">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="progression-date-0">Date (YYYY-MM)</label>
+                <input type="text" class="progression-date" placeholder="2023-01" value="2023-01"/>
+              </div>
+              <div class="form-group">
+                <label for="progression-type-0">Type</label>
+                <select class="progression-type">
+                  <option value="planned">Planned</option>
+                  <option value="learning">Learning</option>
+                  <option value="practiced">Practiced</option>
+                  <option value="executed">Executed</option>
+                  <option value="achieved">Achieved</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="progression-value-0">Value (%)</label>
+                <input type="number" class="progression-value" placeholder="0-100" min="0" max="100" value="0"/>
+              </div>
+              <button type="button" class="remove-progression-btn">Remove</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" id="add-progression-btn" style="margin-bottom: 20px;">Add Progression Entry</button>
+        
+        <h3>Summary Metrics</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="roadmap-learned">Learned (%)</label>
+            <input type="number" id="roadmap-learned" placeholder="0-100" min="0" max="100" value="0"/>
+          </div>
+          <div class="form-group">
+            <label for="roadmap-planned">Planned (%)</label>
+            <input type="number" id="roadmap-planned" placeholder="0-100" min="0" max="100" value="0"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="roadmap-executed">Executed (%)</label>
+            <input type="number" id="roadmap-executed" placeholder="0-100" min="0" max="100" value="0"/>
+          </div>
+          <div class="form-group">
+            <label for="roadmap-practiced">Practiced (%)</label>
+            <input type="number" id="roadmap-practiced" placeholder="0-100" min="0" max="100" value="0"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="roadmap-achieved">Achieved (%)</label>
+            <input type="number" id="roadmap-achieved" placeholder="0-100" min="0" max="100" value="0"/>
+          </div>
+          <div class="form-group">
+            <label for="roadmap-overall">Overall Progress (%)</label>
+            <input type="number" id="roadmap-overall" placeholder="0-100" min="0" max="100" value="0"/>
+          </div>
+        </div>
+        <input type="number" id="roadmap-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="roadmap-visible" checked> Visible</label>
+
+        <h4>Display Options</h4>
+        <div class="display-options">
+          <label><input type="checkbox" id="roadmap-display-description" checked> Show Description</label>
+          <label><input type="checkbox" id="roadmap-display-summary" checked> Show Progress Summary (Learned/Executed)</label>
+          <label><input type="checkbox" id="roadmap-display-achievement" checked> Show Achievement Badge & Date</label>
+          <label><input type="checkbox" id="roadmap-display-timeline" checked> Show Progression Timeline</label>
+          <label><input type="checkbox" id="roadmap-display-metrics" checked> Show Detailed Metrics</label>
+        </div>
+
+        <button type="button" id="roadmap-new-btn">New</button>
+        <button type="submit">Save</button>
+      </form>
+      <ul id="roadmap-list"></ul>
+    </div>
+
+    <!-- RESUME SECTION -->
+    <div class="admin-section" id="resume">
+      <h2>Resume</h2>
+      <form id="resume-form">
+        <input type="hidden" id="resume-id">
+        <input type="text" id="resume-name" placeholder="Resume Name"/>
+        <input type="url" id="resume-url" placeholder="Resume URL"/>
+        <input type="number" id="resume-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="resume-visible" checked> Visible</label>
+        <button type="submit">Save Resume</button>
+        <button type="button" id="resume-new-btn">New</button>
+      </form>
+      <ul id="resume-list"></ul>
+    </div>
+
+    <!-- SOCIAL LINKS SECTION -->
+    <div class="admin-section" id="social">
+      <h2>Social Links</h2>
+      <form id="social-links-form">
+        <input type="hidden" id="social-id">
+        <input id="social-platform" placeholder="Platform (e.g., GitHub, LinkedIn)"/>
+        <input id="social-url" placeholder="URL"/>
+        <input type="number" id="social-order" placeholder="Order" value="0"/>
+        <label><input type="checkbox" id="social-visible" checked> Visible</label>
+        <button type="submit">Save Social Link</button>
+        <button type="button" id="social-new-btn">New</button>
+      </form>
+      <ul id="social-links-list"></ul>
+    </div>
+
     <div class="admin-section" id="contacts">
       <h2>Contact Submissions</h2>
       <p>View and manage all contact form submissions.</p>
       <ul id="contacts-list"></ul>
     </div>
 
+    <!-- STATUS MANAGEMENT -->
+    <div class="admin-section" id="status">
+      <h2>Status Management</h2>
+      <form id="status-form">
+        <div class="form-group">
+          <label for="status-type">Status Type</label>
+          <select id="status-type">
+            <option value="available">Available</option>
+            <option value="working">Working</option>
+            <option value="busy">Busy</option>
+            <option value="not-available">Not Available</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status-label">Status Label</label>
+          <input type="text" id="status-label" placeholder="Enter custom status label" />
+        </div>
+        <div class="form-group">
+          <label for="status-visible">
+            <input type="checkbox" id="status-visible" checked /> Visible on Public Page
+          </label>
+        </div>
+        <button type="submit">Save Status</button>
+      </form>
+    </div>
+
+    <!-- CONTENT SCHEDULER -->
     <div class="admin-section" id="scheduler">
       <h2>Content Scheduler</h2>
       <p>Schedule content updates for your portfolio.</p>
