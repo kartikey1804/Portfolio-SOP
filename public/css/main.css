@@ -863,6 +863,10 @@ body.dark-mode .testimonial-card:hover {
     color: var(--text-primary);
 }
 
+body.dark-mode .testimonial-header h3 {
+    color: var(--text-dark);
+}
+
 .testimonial-rating {
     color: var(--primary-color);
     font-size: 1rem;
@@ -884,12 +888,20 @@ body.dark-mode .testimonial-card:hover {
     font-style: italic;
 }
 
+body.dark-mode .testimonial-role {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 .testimonial-message {
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.6;
     color: var(--text-primary);
     font-style: italic;
+}
+
+body.dark-mode .testimonial-message {
+    color: var(--text-dark);
 }
 
 /* -------------------
