@@ -8,7 +8,7 @@ const STATIC_ASSETS = [
   '/admin.html',
   '/css/main.css',
   '/css/admin.css',
-  '/manifest.json',
+  '/manifest.webmanifest',
   '/assets/og-default.png'
 ];
 

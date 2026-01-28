@@ -1401,6 +1401,7 @@ const loadFeedbackData = () => {
           <p><strong>Category:</strong> ${data.category}</p>
           ${data.name ? `<p><strong>Name:</strong> ${data.name}</p>` : ''}
           ${data.email ? `<p><strong>Email:</strong> ${data.email}</p>` : ''}
+          ${data.contact ? `<p><strong>Contact:</strong> ${data.contact}</p>` : ''}
           <p><strong>Date:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
           ${data.message ? `
             <div class="feedback-message">

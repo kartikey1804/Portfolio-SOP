@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
           message: formData.get('message').trim(),
           name: formData.get('name').trim(),
           email: formData.get('email').trim(),
+          contact: formData.get('contact').trim(),
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
           referrer: document.referrer
