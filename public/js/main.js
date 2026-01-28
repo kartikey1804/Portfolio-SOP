@@ -33,23 +33,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show feedback modal
   if (feedbackBtn && feedbackModal) {
     feedbackBtn.addEventListener('click', () => {
-      feedbackModal.classList.add('active');
+      feedbackModal.classList.add('show');
       document.body.style.overflow = 'hidden';
     });
   }
-  
+
   // Hide feedback modal
   const closeFeedbackModal = () => {
-    feedbackModal.classList.remove('active');
+    feedbackModal.classList.remove('show');
     document.body.style.overflow = '';
-    feedbackStatus.textContent = '';
-    feedbackStatus.className = 'feedback-status';
+    if (feedbackStatus) {
+      feedbackStatus.textContent = '';
+      feedbackStatus.className = 'feedback-status';
+    }
   };
-  
+
   if (feedbackModalClose) {
     feedbackModalClose.addEventListener('click', closeFeedbackModal);
   }
-  
+
   // Close modal when clicking outside
   if (feedbackModal) {
     feedbackModal.addEventListener('click', (e) => {
@@ -58,10 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
+
   // Close modal with Escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && feedbackModal && feedbackModal.classList.contains('active')) {
+    if (e.key === 'Escape' && feedbackModal && feedbackModal.classList.contains('show')) {
       closeFeedbackModal();
     }
   });
@@ -653,10 +655,8 @@ onSnapshot(query(collection(db, 'projects'), orderBy('order')), snapshot => {
   
   // Update featured project
   updateFeaturedProject();
-});
-
-// Add event listeners for project filtering
-document.addEventListener('DOMContentLoaded', () => {
+  
+  // ---------- PROJECT FILTERING ----------
   // Filter buttons event listener
   const filterButtons = document.querySelectorAll('.filter-btn');
   filterButtons.forEach(btn => {

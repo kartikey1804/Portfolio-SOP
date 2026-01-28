@@ -467,6 +467,34 @@ li button {
   color: var(--text-primary);
 }
 
+/* Feedback Section Styles */
+.feedback-info {
+  flex: 1;
+}
+
+.feedback-info h4 {
+  margin: 0 0 10px 0;
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.feedback-info p {
+  margin: 5px 0;
+  color: var(--text-secondary);
+}
+
+.feedback-message {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.feedback-message strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
 .contact-message p {
   margin: 0;
   color: var(--text-secondary);

@@ -3110,6 +3110,338 @@ body.dark-mode .education-card p strong {
     color: #00bcd4 !important;
 }
 
+/* ===============================
+   VISITOR FEEDBACK SYSTEM
+================================ */
+
+/* Floating Feedback Button */
+.feedback-floating-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-light);
+    transition: all 0.3s ease;
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feedback-floating-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.feedback-floating-btn i {
+    font-size: 1.2rem;
+}
+
+/* Feedback Modal */
+.feedback-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+.feedback-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feedback-modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-heavy);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.feedback-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.feedback-modal-header h3 {
+    margin: 0;
+    color: var(--primary-text);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.feedback-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: var(--secondary-text);
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.feedback-modal-close:hover {
+    background: var(--hover-bg);
+    color: var(--primary-text);
+}
+
+.feedback-modal-body {
+    padding: 25px;
+}
+
+/* Feedback Form */
+#feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--primary-text);
+    font-size: 0.95rem;
+}
+
+/* Rating Stars - Fixed styling */
+.rating-stars {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.rating-stars input[type="radio"] {
+    display: none;
+}
+
+.rating-stars label {
+    font-size: 2.5rem;
+    color: var(--secondary-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+}
+
+.rating-stars label:hover,
+.rating-stars label:hover ~ label {
+    color: #ffd700;
+    transform: scale(1.1);
+}
+
+.rating-stars input[type="radio"]:checked ~ label {
+    color: #ffd700;
+}
+
+.rating-stars input[type="radio"]:checked + label,
+.rating-stars input[type="radio"]:checked + label ~ label {
+    color: #ffd700;
+}
+
+/* Form Select */
+.form-group select {
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--input-bg);
+    color: var(--primary-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+}
+
+/* Form Textarea */
+.form-group textarea {
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    min-height: 120px;
+    resize: vertical;
+    background: var(--input-bg);
+    color: var(--primary-text);
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+}
+
+/* Form Submit Button */
+.form-submit-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.form-submit-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
+.form-submit-btn:active {
+    transform: translateY(0);
+}
+
+.form-submit-btn:disabled {
+    background: var(--disabled-bg);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Feedback Status */
+.feedback-status {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.feedback-status.success {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.feedback-status.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Dark Mode Feedback Status */
+body.dark-mode .feedback-status.success {
+    background-color: rgba(16, 185, 129, 0.2);
+}
+
+body.dark-mode .feedback-status.error {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Dark Mode Adjustments */
+body.dark-mode .feedback-modal-content {
+    background: rgba(51, 51, 51, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .feedback-modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .rating-stars label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .rating-stars label:hover,
+body.dark-mode .rating-stars label:hover ~ label,
+body.dark-mode .rating-stars input[type="radio"]:checked ~ label {
+    color: #ffd700;
+}
+
+body.dark-mode .form-submit-btn {
+    background: #00bcd4;
+}
+
+body.dark-mode .form-submit-btn:hover {
+    background: #00acc1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    .feedback-modal-content {
+        margin: 20px;
+        width: calc(100% - 40px);
+    }
+    
+    .feedback-modal-header,
+    .feedback-modal-body {
+        padding: 20px;
+    }
+    
+    .rating-stars label {
+        font-size: 2rem;
+    }
+    
+    .feedback-floating-btn {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+}
+
 /* ---------- ROADMAP ---------- */
 #roadmap {
   padding: 60px 20px;

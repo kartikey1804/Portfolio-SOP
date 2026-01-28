@@ -1,20 +1,43 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read access to all collections
+
+    // ✅ Public read access (unchanged)
     match /{document=**} {
       allow read: if true;
     }
 
-    // Allow authenticated admins to write to all management collections
+    // ✅ Admin-only write access
     match /{collectionId}/{documentId} {
       allow write: if request.auth != null
         && request.auth.token.email == 'kartikeypandey1804@gmail.com'
-        && collectionId in ['about', 'skills', 'projects', 'experience', 'education', 'roadmap', 'achievements', 'certificates', 'resume', 'socialLinks', 'analytics', 'scheduler', 'testimonials', 'settings'];
+        && collectionId in [
+          'about',
+          'skills',
+          'projects',
+          'experience',
+          'education',
+          'roadmap',
+          'achievements',
+          'certificates',
+          'resume',
+          'socialLinks',
+          'analytics',
+          'scheduler',
+          'testimonials',
+          'settings',
+          'hero',
+          'feedback'
+        ];
+    }
+
+    // ✅ Public contact form submissions (unchanged)
+    match /contacts/{contactId} {
+      allow write: if true;
     }
     
-    // Allow public write access to contacts collection (for contact form)
-    match /contacts/{contactId} {
+    // ✅ Public feedback form submissions
+    match /feedback/{feedbackId} {
       allow write: if true;
     }
   }

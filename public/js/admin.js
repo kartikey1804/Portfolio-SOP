@@ -158,6 +158,8 @@ const loadFirestoreData = () => {
   loadTestimonialsData();
   // Load Contact submissions data
   loadContactsData();
+  // Load Feedback submissions data
+  loadFeedbackData();
   // Load Content Scheduler data
   loadSchedulerData();
   // Load Status data
@@ -1366,6 +1368,66 @@ window.deleteContact = async (id) => {
     } catch (error) {
       console.error('Error deleting contact submission:', error);
       alert('Failed to delete contact submission: ' + error.message);
+    }
+  }
+};
+
+// ---------- FEEDBACK SECTION ----------
+const loadFeedbackData = () => {
+  const feedbackList = document.getElementById('feedback-list');
+  if (!feedbackList) return;
+
+  // Real-time listener for Feedback submissions data (ordered by newest first)
+  onSnapshot(query(collection(db, 'feedback'), orderBy('timestamp', 'desc')), (snapshot) => {
+    feedbackList.innerHTML = '';
+    
+    if (snapshot.empty) {
+      const li = document.createElement('li');
+      li.textContent = 'No feedback submissions yet.';
+      feedbackList.appendChild(li);
+      return;
+    }
+    
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const li = document.createElement('li');
+      
+      // Generate star rating display
+      const stars = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+      
+      li.innerHTML = `
+        <div class="feedback-info">
+          <h4>Rating: ${stars} (${data.rating}/5)</h4>
+          <p><strong>Category:</strong> ${data.category}</p>
+          ${data.name ? `<p><strong>Name:</strong> ${data.name}</p>` : ''}
+          ${data.email ? `<p><strong>Email:</strong> ${data.email}</p>` : ''}
+          <p><strong>Date:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+          ${data.message ? `
+            <div class="feedback-message">
+              <strong>Feedback:</strong>
+              <p>${data.message}</p>
+            </div>
+          ` : ''}
+          ${data.userAgent ? `<p><small><strong>User Agent:</strong> ${data.userAgent}</small></p>` : ''}
+          ${data.referrer ? `<p><small><strong>Referrer:</strong> ${data.referrer}</small></p>` : ''}
+        </div>
+        <div>
+          <button class="danger" onclick="deleteFeedback('${docSnap.id}')">Delete</button>
+        </div>
+      `;
+      feedbackList.appendChild(li);
+    });
+  });
+};
+
+// Global function to delete a feedback submission
+window.deleteFeedback = async (id) => {
+  if (confirm('Are you sure you want to delete this feedback submission?')) {
+    try {
+      await deleteDoc(doc(db, 'feedback', id));
+    } catch (error) {
+      console.error('Error deleting feedback submission:', error);
+      alert('Failed to delete feedback submission: ' + error.message);
     }
   }
 };
