@@ -23,6 +23,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500);
   }
   
+  // ---------- MOBILE MENU ----------
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const navMenu = document.getElementById('nav-menu');
+  
+  if (mobileMenuToggle && navMenu) {
+    mobileMenuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('show');
+      mobileMenuToggle.classList.toggle('active');
+    });
+    
+    // Close menu when clicking on a link
+    const navLinks = navMenu.querySelectorAll('a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('show');
+        mobileMenuToggle.classList.remove('active');
+      });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!navMenu.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+        navMenu.classList.remove('show');
+        mobileMenuToggle.classList.remove('active');
+      }
+    });
+  }
+  
   // ---------- VISITOR FEEDBACK SYSTEM ----------
   const feedbackBtn = document.getElementById('feedback-btn');
   const feedbackModal = document.getElementById('feedback-modal');
