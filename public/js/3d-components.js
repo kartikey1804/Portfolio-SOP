@@ -9,12 +9,25 @@ class ThreeDComponents {
         this.hoverElements = [];
         this.userAttentionMap = new Map();
         
+        // Cache layout measurements to prevent layout thrashing
+        this.sectionBounds = [];
+        
         this.init();
     }
     
     init() {
         // Initialize user attention map
         this.initUserAttentionMap();
+        
+        // Apply initial layout cache and register update events
+        this.cacheSectionBounds();
+        window.addEventListener('resize', () => {
+            this.isMobile = window.innerWidth < 768;
+            this.cacheSectionBounds();
+        });
+        
+        // Dynamic recaching to capture updates from Firestore renders
+        setInterval(() => this.cacheSectionBounds(), 2000);
         
         // Apply 3D effects to sections
         this.apply3DEffects();
@@ -38,6 +51,18 @@ class ThreeDComponents {
         this.addNavigationEffects();
     }
     
+    cacheSectionBounds() {
+        this.sectionBounds = Array.from(this.sections).map(section => {
+            return {
+                element: section,
+                id: section.id,
+                offsetTop: section.offsetTop,
+                offsetHeight: section.offsetHeight,
+                offsetWidth: section.offsetWidth
+            };
+        });
+    }
+    
     initUserAttentionMap() {
         // Initialize with empty attention data for all sections
         this.sections.forEach(section => {
@@ -51,7 +76,9 @@ class ThreeDComponents {
     }
     
     addCursorTracking() {
-        // Track mouse position and speed
+        let lastProximityCheck = 0;
+        
+        // Track mouse position and speed with throttled proximity checks
         document.addEventListener('mousemove', (e) => {
             this.previousMousePos = { ...this.mousePos };
             this.mousePos = { x: e.clientX, y: e.clientY };
@@ -61,14 +88,24 @@ class ThreeDComponents {
             const dy = this.mousePos.y - this.previousMousePos.y;
             this.mouseSpeed = Math.sqrt(dx * dx + dy * dy);
             
-            // Update proximity pre-activation
-            this.updateProximityPreActivation();
+            const now = Date.now();
+            if (now - lastProximityCheck > 50) { // Limit execution to 20fps
+                lastProximityCheck = now;
+                this.updateProximityPreActivation();
+            }
         });
     }
     
     updateProximityPreActivation() {
         // Check all hover elements for proximity to cursor
         this.hoverElements.forEach(element => {
+            // Optimization: skip elements whose parent section is not visible
+            const parentSection = element.closest('section');
+            if (parentSection && !parentSection.classList.contains('visible')) {
+                this.deactivateElement(element);
+                return;
+            }
+            
             const rect = element.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
@@ -167,26 +204,29 @@ class ThreeDComponents {
             mouseY = e.clientY;
         });
         
-        // Update sections based on mouse position
+        // Update sections based on mouse position using cached layout measurements
         const updateMagneticEffect = () => {
             currentX += (mouseX - currentX) * 0.1;
             currentY += (mouseY - currentY) * 0.1;
             
-            this.sections.forEach(section => {
-                const rect = section.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
+            const scrollY = window.scrollY;
+            
+            this.sectionBounds.forEach(bounds => {
+                const section = bounds.element;
+                
+                // Calculate position relative to viewport using cached offsetTop
+                const sectionTop = bounds.offsetTop - scrollY;
+                const centerX = window.innerWidth / 2; // sections are centered full-width
+                const centerY = sectionTop + bounds.offsetHeight / 2;
                 
                 // Calculate distance from mouse to section center
                 const dx = currentX - centerX;
                 const dy = currentY - centerY;
                 
                 // Calculate rotation based on distance
-                const rotationY = (dx / rect.width) * 10;
-                const rotationX = -(dy / rect.height) * 10;
+                const rotationY = (dx / window.innerWidth) * 8;
+                const rotationX = -(dy / window.innerHeight) * 8;
                 
-                // Apply rotation with easing
-
                 const isVisible = section.classList.contains('visible');
                 
                 if (isVisible) {
@@ -249,91 +289,78 @@ class ThreeDComponents {
         const skillsList = document.getElementById('skills-list');
         if (!skillsList) return;
         
-        // Convert skills list to flex container for clustering
-        skillsList.style.display = 'flex';
-        skillsList.style.flexWrap = 'wrap';
-        skillsList.style.justifyContent = 'center';
-        skillsList.style.position = 'relative';
-        
-        const skillItems = Array.from(skillsList.querySelectorAll('.skill-item'));
-        
-        // Initialize skill clusters
-        this.skillClusters = this.initializeSkillClusters(skillItems);
-        
-        // Create visual connections between related skills
-        this.createSkillConnections(skillsList, skillItems);
-        
-        // Apply initial clustering
-        this.applySkillClustering(skillItems);
-        
-        skillItems.forEach(item => {
-            // Add to hover elements for proximity detection
-            this.hoverElements.push(item);
-            
-            item.addEventListener('mouseenter', () => {
-                // Enhanced activation with neural feedback
-                gsap.to(item, {
-                    scale: 1.05,
-                    boxShadow: '0 15px 40px rgba(0, 188, 212, 0.4)',
-                    duration: 0.3,
-                    ease: "power2.out"
+        // Wait for skills list to render
+        const checkSkills = setInterval(() => {
+            const skillItems = Array.from(skillsList.querySelectorAll('.skill-item'));
+            if (skillItems.length > 0) {
+                clearInterval(checkSkills);
+                
+                // Initialize skill clusters dynamically based on their category section
+                this.skillClusters = this.initializeSkillClusters(skillItems);
+                
+                // Create visual connections between related skills
+                this.createSkillConnections(skillsList, skillItems);
+                
+                skillItems.forEach(item => {
+                    // Add to hover elements for proximity detection
+                    this.hoverElements.push(item);
+                    
+                    item.addEventListener('mouseenter', () => {
+                        // Enhanced activation with neural feedback
+                        gsap.to(item, {
+                            scale: 1.05,
+                            boxShadow: '0 15px 40px rgba(0, 188, 212, 0.4)',
+                            duration: 0.3,
+                            ease: "power2.out"
+                        });
+                        
+                        // Update interaction level in attention map
+                        this.updateInteractionLevel('skills', 0.2);
+                        
+                        // Highlight related skills
+                        this.highlightRelatedSkills(item, skillItems);
+                    });
+                    
+                    item.addEventListener('mouseleave', () => {
+                        gsap.to(item, {
+                            scale: 1,
+                            boxShadow: '',
+                            duration: 0.3,
+                            ease: "power2.out"
+                        });
+                        
+                        // Reset skill highlights
+                        this.resetSkillHighlights(skillItems);
+                    });
+                    
+                    // Add click interaction tracking
+                    item.addEventListener('click', () => {
+                        this.updateInteractionLevel('skills', 0.5);
+                        this.reclusterSkills(item, skillItems);
+                    });
                 });
                 
-                // Update interaction level in attention map
-                this.updateInteractionLevel('skills', 0.2);
-                
-                // Highlight related skills
-                this.highlightRelatedSkills(item, skillItems);
-            });
-            
-            item.addEventListener('mouseleave', () => {
-                gsap.to(item, {
-                    scale: 1,
-                    boxShadow: '',
-                    duration: 0.3,
-                    ease: "power2.out"
-                });
-                
-                // Reset skill highlights
-                this.resetSkillHighlights(skillItems);
-            });
-            
-            // Add click interaction tracking
-            item.addEventListener('click', () => {
-                this.updateInteractionLevel('skills', 0.5);
-                
-                // Recluster skills based on this skill
-                this.reclusterSkills(item, skillItems);
-            });
-        });
-        
-        // Update clusters periodically
-        setInterval(() => {
-            this.updateSkillClusters(skillItems);
-        }, 5000);
+                // Update clusters periodically
+                setInterval(() => {
+                    this.updateSkillClusters();
+                }, 5000);
+            }
+        }, 500);
     }
     
     initializeSkillClusters(skillItems) {
-        // Create initial clusters based on skill categories (simplified)
-        const clusters = {
-            'programming': [],
-            'design': [],
-            'tools': [],
-            'frameworks': []
-        };
+        // Group skills by their closest .skill-type-section container (category card)
+        const clusters = {};
         
         skillItems.forEach(item => {
-            // Simple category assignment based on text content
-            const text = item.textContent.toLowerCase();
-            if (text.includes('javascript') || text.includes('python') || text.includes('java') || text.includes('c++')) {
-                clusters.programming.push(item);
-            } else if (text.includes('design') || text.includes('ui') || text.includes('ux') || text.includes('graphic')) {
-                clusters.design.push(item);
-            } else if (text.includes('git') || text.includes('docker') || text.includes('figma') || text.includes('adobe')) {
-                clusters.tools.push(item);
-            } else {
-                clusters.frameworks.push(item);
+            const section = item.closest('.skill-type-section');
+            const titleEl = section ? section.querySelector('.skill-type-title') : null;
+            const category = titleEl ? titleEl.textContent.trim().toLowerCase() : 'other';
+            
+            if (!clusters[category]) {
+                clusters[category] = [];
             }
+            clusters[category].push(item);
         });
         
         return clusters;
@@ -342,59 +369,64 @@ class ThreeDComponents {
     createSkillConnections(container, skillItems) {
         // Create a canvas for drawing connections
         const canvas = document.createElement('canvas');
-        canvas.width = container.offsetWidth;
-        canvas.height = container.offsetHeight;
         canvas.style.position = 'absolute';
         canvas.style.top = '0';
         canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
         canvas.style.pointerEvents = 'none';
         canvas.style.zIndex = '0';
+        container.style.position = 'relative';
         container.appendChild(canvas);
         
         this.skillCanvas = canvas;
         this.skillCtx = canvas.getContext('2d');
         
-        // Store initial positions
-        skillItems.forEach(item => {
-            const rect = item.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            item._skillPos = {
-                x: rect.left - containerRect.left + rect.width / 2,
-                y: rect.top - containerRect.top + rect.height / 2
-            };
-        });
-        
-        // Draw initial connections
-        this.drawSkillConnections(skillItems);
-        
-        // Update connections on resize
-        window.addEventListener('resize', () => {
+        const resizeCanvas = () => {
             canvas.width = container.offsetWidth;
             canvas.height = container.offsetHeight;
-            this.drawSkillConnections(skillItems);
-        });
+            this.drawSkillConnections();
+        };
+        
+        // Initial setup
+        setTimeout(resizeCanvas, 300);
+        
+        // Update connections on resize
+        window.addEventListener('resize', resizeCanvas);
     }
     
     drawSkillConnections() {
-        if (!this.skillCtx) return;
+        if (!this.skillCtx || !this.skillCanvas) return;
+        
+        const container = this.skillCanvas.parentNode;
+        const containerRect = container.getBoundingClientRect();
         
         // Clear canvas
         this.skillCtx.clearRect(0, 0, this.skillCanvas.width, this.skillCanvas.height);
         
-        // Draw connections between related skills
-        this.skillCtx.strokeStyle = 'rgba(0, 188, 212, 0.3)';
-        this.skillCtx.lineWidth = 1;
+        // Draw connections between related skills (same category)
+        const interactionData = this.userAttentionMap.get('skills') || { interactionLevel: 0 };
+        const opacity = 0.15 + (interactionData.interactionLevel * 0.35);
+        this.skillCtx.strokeStyle = `rgba(0, 188, 212, ${opacity})`;
+        this.skillCtx.lineWidth = 1 + (interactionData.interactionLevel * 1);
         
-        // Simple connection logic: connect skills in the same cluster
         Object.values(this.skillClusters).forEach(cluster => {
             for (let i = 0; i < cluster.length; i++) {
                 for (let j = i + 1; j < cluster.length; j++) {
                     const skill1 = cluster[i];
                     const skill2 = cluster[j];
                     
+                    const rect1 = skill1.getBoundingClientRect();
+                    const rect2 = skill2.getBoundingClientRect();
+                    
+                    const x1 = rect1.left - containerRect.left + rect1.width / 2;
+                    const y1 = rect1.top - containerRect.top + rect1.height / 2;
+                    const x2 = rect2.left - containerRect.left + rect2.width / 2;
+                    const y2 = rect2.top - containerRect.top + rect2.height / 2;
+                    
                     this.skillCtx.beginPath();
-                    this.skillCtx.moveTo(skill1._skillPos.x, skill1._skillPos.y);
-                    this.skillCtx.lineTo(skill2._skillPos.x, skill2._skillPos.y);
+                    this.skillCtx.moveTo(x1, y1);
+                    this.skillCtx.lineTo(x2, y2);
                     this.skillCtx.stroke();
                 }
             }
@@ -402,41 +434,10 @@ class ThreeDComponents {
     }
     
     applySkillClustering() {
-        // Apply initial positioning based on clusters
-        let clusterX = 0;
-        const clusterSpacing = 40;
-        
-        Object.values(this.skillClusters).forEach(cluster => {
-            if (cluster.length === 0) return;
-            
-            // Calculate cluster center
-            let clusterY = 0;
-            const itemHeight = cluster[0].offsetHeight + 20;
-
-            
-            cluster.forEach((item, index) => {
-                const row = Math.floor(index / 4);
-                const col = index % 4;
-                const x = clusterX + col * (item.offsetWidth + 20);
-                const y = row * itemHeight;
-                
-                // Apply positioning
-                gsap.to(item, {
-                    x: x,
-                    y: y,
-                    duration: 1.0,
-                    ease: "power2.out"
-                });
-                
-                clusterY = Math.max(clusterY, y + itemHeight);
-            });
-            
-            clusterX += clusterSpacing + (cluster.length > 4 ? 4 * (cluster[0].offsetWidth + 20) : cluster.length * (cluster[0].offsetWidth + 20));
-        });
+        // No-op to preserve standard premium CSS grid layout
     }
     
     highlightRelatedSkills(activeSkill, allSkills) {
-        // Find cluster of active skill
         let activeCluster = null;
         Object.values(this.skillClusters).forEach(cluster => {
             if (cluster.includes(activeSkill)) {
@@ -446,19 +447,18 @@ class ThreeDComponents {
         
         if (!activeCluster) return;
         
-        // Highlight related skills (same cluster)
         allSkills.forEach(skill => {
             if (activeCluster.includes(skill) && skill !== activeSkill) {
                 gsap.to(skill, {
                     scale: 1.02,
-                    opacity: 0.9,
+                    opacity: 1,
                     duration: 0.3,
                     ease: "power2.out"
                 });
             } else if (skill !== activeSkill) {
                 gsap.to(skill, {
-                    scale: 0.95,
-                    opacity: 0.6,
+                    scale: 0.96,
+                    opacity: 0.5,
                     duration: 0.3,
                     ease: "power2.out"
                 });
@@ -478,58 +478,18 @@ class ThreeDComponents {
     }
     
     reclusterSkills(activeSkill, allSkills) {
-        // Reorganize clusters with the active skill at the center
-        // This is a simplified implementation
-        const newClusters = this.initializeSkillClusters(allSkills);
-        
-        // Move active skill to a prominent position
+        // Pulse animation on click
         gsap.to(activeSkill, {
-            scale: 1.1,
-            duration: 0.5,
-            ease: "power2.out",
+            scale: 1.08,
+            duration: 0.3,
             yoyo: true,
-            repeat: 1
+            repeat: 1,
+            ease: "power2.out"
         });
-        
-        // Redraw connections
-        this.skillClusters = newClusters;
-        this.drawSkillConnections(allSkills);
     }
     
-    updateSkillClusters(skillItems) {
-        // Update clusters based on user interaction data
-        // This is a simplified implementation
-        const interactionData = this.userAttentionMap.get('skills') || { interactionLevel: 0 };
-        
-        if (interactionData.interactionLevel > 0.5) {
-            // If user is actively interacting, make clusters tighter
-            Object.values(this.skillClusters).forEach(cluster => {
-                cluster.forEach(item => {
-                    gsap.to(item, {
-                        margin: '5px',
-                        duration: 1.0,
-                        ease: "power2.out"
-                    });
-                });
-            });
-        } else {
-            // If user is not interacting, spread out clusters
-            Object.values(this.skillClusters).forEach(cluster => {
-                cluster.forEach(item => {
-                    gsap.to(item, {
-                        margin: '15px',
-                        duration: 1.0,
-                        ease: "power2.out"
-                    });
-                });
-            });
-        }
-        
-        // Update connection opacity based on interaction
-        if (this.skillCtx) {
-            this.skillCtx.strokeStyle = `rgba(0, 188, 212, ${0.2 + interactionData.interactionLevel * 0.3})`;
-            this.drawSkillConnections(skillItems);
-        }
+    updateSkillClusters() {
+        this.drawSkillConnections();
     }
     
     addProjectsInteractions() {
@@ -670,6 +630,10 @@ class ThreeDComponents {
 document.addEventListener('DOMContentLoaded', () => {
     // Wait a moment for the page to render before initializing 3D effects
     setTimeout(() => {
-
+        try {
+            window.threeDComponents = new ThreeDComponents();
+        } catch (e) {
+            console.error("Error initializing 3D components:", e);
+        }
     }, 500);
 });

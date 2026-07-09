@@ -16,6 +16,11 @@
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
     <meta name="theme-color" content="#ffffff">
 
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main CSS -->
@@ -58,22 +63,15 @@
                 </li>
                 <li><a href="#contact">Contact</a></li>
                 <li>
-                    <div class="hire-me-container">
-                        <button type="button" id="hire-me-btn">Hire Me</button>
-                        <div class="hire-me-options">
-                            <button type="button" id="mail-system-default">System Default</button>
-                            <button type="button" id="mail-gmail">Gmail</button>
-                            <button type="button" id="mail-outlook">Outlook</button>
-                            <button type="button" id="mail-copy">Copy Email</button>
-                        </div>
-                    </div>
+                    <button type="button" id="hire-me-btn" class="hire-me-btn">Hire Me</button>
                 </li>
             </ul>
-            <!-- Theme Switcher -->
-            <div class="theme-switcher">
-                <button type="button" id="theme-light">Light</button>
-                <button type="button" id="theme-dark">Dark</button>
-                <button type="button" id="theme-system">System</button>
+            <!-- Theme Switcher Slider -->
+            <div class="theme-slider-container" data-active="system">
+                <div class="theme-slider-pill"></div>
+                <button type="button" id="theme-light" class="theme-slider-btn">Light</button>
+                <button type="button" id="theme-dark" class="theme-slider-btn">Dark</button>
+                <button type="button" id="theme-system" class="theme-slider-btn">System</button>
             </div>
 
         </nav>
@@ -237,7 +235,7 @@
             <div class="footer-section">
                 <h3>Contact</h3>
                 <ul>
-                    <li><a href="mailto:kartikeypandey1804@gmail.com">Email Me</a></li>
+                    <li><a href="mailto:kartikeypandey1804@gmail.com" id="footer-email-btn">Email Me</a></li>
                     <li><a href="#contact">Contact Form</a></li>
                 </ul>
                 <div class="footer-social-links">
@@ -336,10 +334,52 @@
         </div>
     </div>
 
+    <!-- Email Options Modal -->
+    <div class="feedback-modal" id="email-modal">
+        <div class="feedback-modal-content email-modal-content">
+            <div class="feedback-modal-header">
+                <h3>Contact Kartikey</h3>
+                <button type="button" class="feedback-modal-close" id="email-modal-close">&times;</button>
+            </div>
+            <div class="feedback-modal-body email-modal-body">
+                <p class="email-modal-desc">Select your preferred platform to send an email:</p>
+                <div class="email-options-grid">
+                    <button type="button" class="email-opt-btn" id="email-opt-gmail">
+                        <i class="fab fa-google"></i>
+                        <span>Gmail</span>
+                        <small>Open in web browser</small>
+                    </button>
+                    <button type="button" class="email-opt-btn" id="email-opt-outlook">
+                        <i class="fab fa-windows"></i>
+                        <span>Outlook</span>
+                        <small>Open in web browser</small>
+                    </button>
+                    <button type="button" class="email-opt-btn" id="email-opt-default">
+                        <i class="fas fa-envelope"></i>
+                        <span>Default Client</span>
+                        <small>Open local mail app</small>
+                    </button>
+                    <button type="button" class="email-opt-btn" id="email-opt-copy">
+                        <i class="fas fa-copy"></i>
+                        <span>Copy Email</span>
+                        <small>Copy to clipboard</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js & GSAP Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <!-- Firebase Initialization -->
     <script type="module" src="/js/firebase.js"></script>
     <script type="module" src="/js/main.js"></script>
-    <!-- Enhanced Cognitive Neural Network -->
+    
+    <!-- 3D Animation & Interactivity Scripts -->
+    <script type="module" src="/js/cognitive-neural-network.js"></script>
+    <script type="module" src="/js/3d-components.js"></script>
 
     <!-- PWA Service Worker Registration -->
     <script type="module" src="/js/pwa.js"></script>

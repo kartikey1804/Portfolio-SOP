@@ -64,20 +64,22 @@
     applyTheme(theme);
   }
 
-  // Update active state of theme buttons
+  // Update active state of theme buttons and slide the active indicator
   function updateThemeButtons(activeTheme) {
-    document.querySelectorAll('.theme-switcher button').forEach(button => {
+    const container = document.querySelector('.theme-slider-container');
+    if (container) {
+      container.setAttribute('data-active', activeTheme);
+    }
+    document.querySelectorAll('.theme-slider-btn').forEach(button => {
       button.classList.remove('active');
       if (button.id === `theme-${activeTheme}`) {
-        button.classList.add('active');
-      } else if (activeTheme === 'system' && button.id === 'theme-system') {
         button.classList.add('active');
       }
     });
   }
 
   // Initialize theme on page load
-  document.addEventListener('DOMContentLoaded', () => {
+  const initThemeSwitcher = () => {
     const savedTheme = safeLocalStorage('get', THEME_STORAGE_KEY);
     const initialTheme = savedTheme || 'system'; // Default to system if no preference saved
     applyTheme(initialTheme); // Apply theme without saving again
@@ -111,7 +113,13 @@
         applyTheme('system'); // Re-apply system theme to reflect new preference
       }
     });
-  });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initThemeSwitcher);
+  } else {
+    initThemeSwitcher();
+  }
 
   // Expose setTheme for potential external use if needed
   window.setTheme = setTheme;

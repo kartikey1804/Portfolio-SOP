@@ -40,6 +40,11 @@ class NeuralNetworkScene {
     }
     
     init() {
+        // Create solid background backdrop element first (so it renders behind canvas)
+        this.backdrop = document.createElement('div');
+        this.backdrop.id = 'bg-backdrop';
+        document.body.appendChild(this.backdrop);
+
         // Create canvas element
         this.canvas = document.createElement('canvas');
         this.canvas.style.position = 'fixed';
@@ -129,27 +134,14 @@ class NeuralNetworkScene {
             this.scene.add(node);
         }
         
-        // Create connections
-        const connectionMaterial = new THREE.LineBasicMaterial({
-            color: 0x6699cc,
-            transparent: true,
-            opacity: 0.3
-        });
-        
+        // Build connections index pairs
         for (let i = 0; i < this.nodes.length; i++) {
             for (let j = i + 1; j < this.nodes.length; j++) {
                 if (Math.random() < this.connectionProbability) {
                     const node1 = this.nodes[i];
                     const node2 = this.nodes[j];
                     
-                    // Create line geometry with initial points
-                    const points = [node1.position.clone(), node2.position.clone()];
-                    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-                    const line = new THREE.Line(geometry, connectionMaterial.clone());
-                    
-                    // Store connection with references to nodes and signal properties
                     const connection = {
-                        line: line,
                         node1: node1,
                         node2: node2,
                         pulse: Math.random(),
@@ -160,10 +152,27 @@ class NeuralNetworkScene {
                     };
                     
                     this.connections.push(connection);
-                    this.scene.add(line);
                 }
             }
         }
+        
+        // Single LineSegments initialization (1 draw call)
+        const connectionCount = this.connections.length;
+        this.linePositions = new Float32Array(connectionCount * 6);
+        this.lineColors = new Float32Array(connectionCount * 6);
+        
+        this.lineGeometry = new THREE.BufferGeometry();
+        this.lineGeometry.setAttribute('position', new THREE.BufferAttribute(this.linePositions, 3));
+        this.lineGeometry.setAttribute('color', new THREE.BufferAttribute(this.lineColors, 3));
+        
+        const connectionMaterial = new THREE.LineBasicMaterial({
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        this.lineSegments = new THREE.LineSegments(this.lineGeometry, connectionMaterial);
+        this.scene.add(this.lineSegments);
     }
     
     setupEventListeners() {
@@ -188,8 +197,7 @@ class NeuralNetworkScene {
         });
         
         // UI element hover and click events
-        document.addEventListener('DOMContentLoaded', () => {
-            // Add hover and click listeners to all interactive elements
+        const setupUIEvents = () => {
             const interactiveElements = document.querySelectorAll('button, a, .nav-link, .project-card, .skill-item');
             
             interactiveElements.forEach(element => {
@@ -203,12 +211,17 @@ class NeuralNetworkScene {
                 });
                 
                 // Click events
-                element.addEventListener('click', (e) => {
-                    e.preventDefault();
+                element.addEventListener('click', () => {
                     this.triggerSignalBurst();
                 });
             });
-        });
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupUIEvents);
+        } else {
+            setupUIEvents();
+        }
     }
     
     preActivateNeurons() {
@@ -481,10 +494,22 @@ class NeuralNetworkScene {
     }
     
     updateConnections() {
-        this.connections.forEach(conn => {
-            // Update connection geometry with current node positions
-            const points = [conn.node1.position, conn.node2.position];
-            conn.line.geometry.setFromPoints(points);
+        const connectionCount = this.connections.length;
+        const baseColor = new THREE.Color(0x6699cc);
+        
+        for (let i = 0; i < connectionCount; i++) {
+            const conn = this.connections[i];
+            const p1 = conn.node1.position;
+            const p2 = conn.node2.position;
+            
+            const idx = i * 6;
+            this.linePositions[idx] = p1.x;
+            this.linePositions[idx + 1] = p1.y;
+            this.linePositions[idx + 2] = p1.z;
+            
+            this.linePositions[idx + 3] = p2.x;
+            this.linePositions[idx + 4] = p2.y;
+            this.linePositions[idx + 5] = p2.z;
             
             // Pulse animation combined with signal strength
             conn.pulse += conn.pulseSpeed * this.animationSpeed;
@@ -492,21 +517,26 @@ class NeuralNetworkScene {
                 conn.pulse = 0;
             }
             
-            // Calculate combined intensity from pulse and signal strength
             const pulseIntensity = Math.sin(conn.pulse * Math.PI * 2) * 0.2;
             const signalIntensity = conn.signalStrength * 0.5;
-            const totalIntensity = 0.1 + pulseIntensity + signalIntensity;
+            const totalIntensity = Math.max(0.02, 0.08 + pulseIntensity + signalIntensity);
             
-            // Update opacity based on combined intensity
-            conn.line.material.opacity = totalIntensity;
-            
-            // Update color based on signal strength
+            // Update color brightness and hue directly
+            const color = baseColor.clone();
             const hue = 0.55 + (conn.signalStrength * 0.2);
-            conn.line.material.color.setHSL(hue, 0.7, 0.6);
+            color.setHSL(hue, 0.7, totalIntensity * 0.6);
             
-            // Update width based on path strength and signal strength
-            conn.line.material.linewidth = 1 + (conn.pathStrength * 2) + (conn.signalStrength * 3);
-        });
+            this.lineColors[idx] = color.r;
+            this.lineColors[idx + 1] = color.g;
+            this.lineColors[idx + 2] = color.b;
+            
+            this.lineColors[idx + 3] = color.r;
+            this.lineColors[idx + 4] = color.g;
+            this.lineColors[idx + 5] = color.b;
+        }
+        
+        this.lineGeometry.attributes.position.needsUpdate = true;
+        this.lineGeometry.attributes.color.needsUpdate = true;
     }
     
     wrapNodePosition(node) {
@@ -539,6 +569,18 @@ class NeuralNetworkScene {
         // Remove canvas from DOM
         if (this.canvas && this.canvas.parentNode) {
             this.canvas.parentNode.removeChild(this.canvas);
+        }
+        
+        // Remove backdrop from DOM
+        if (this.backdrop && this.backdrop.parentNode) {
+            this.backdrop.parentNode.removeChild(this.backdrop);
+        }
+        
+        // Remove line segments and dispose geometries/materials
+        if (this.lineSegments) {
+            this.scene.remove(this.lineSegments);
+            if (this.lineGeometry) this.lineGeometry.dispose();
+            if (this.lineSegments.material) this.lineSegments.material.dispose();
         }
         
         // Dispose renderer

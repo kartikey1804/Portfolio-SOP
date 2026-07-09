@@ -415,66 +415,149 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ---------- HIRE ME BUTTON FUNCTIONALITY ----------
-  const hireMeBtn = document.getElementById('hire-me-btn');
-  const hireMeContainer = document.querySelector('.hire-me-container');
-  const mailSystemDefaultBtn = document.getElementById('mail-system-default');
-  const mailGmailBtn = document.getElementById('mail-gmail');
-  const mailOutlookBtn = document.getElementById('mail-outlook');
-  const mailCopyBtn = document.getElementById('mail-copy');
-
+  // ---------- EMAIL VARIABLES ----------
   const recipientEmail = 'kartikeypandey1804@gmail.com';
-  const subject = encodeURIComponent('Hiring Inquiry from Portfolio');
-  const body = encodeURIComponent('Dear Kartikey,\n\nI am writing to discuss a potential opportunity...\n\nBest regards,');
+  const subject = encodeURIComponent('Inquiry from Portfolio');
+  const body = encodeURIComponent('Hi Kartikey,\n\nI visited your portfolio and wanted to reach out...\n\nBest regards,');
 
-  if (hireMeBtn && hireMeContainer) {
-    hireMeBtn.addEventListener('click', () => {
-      hireMeContainer.classList.toggle('active');
-    });
+  // ---------- EMAIL MODAL SYSTEM ----------
+  const emailModal = document.getElementById('email-modal');
+  const emailModalClose = document.getElementById('email-modal-close');
+  const footerEmailBtn = document.getElementById('footer-email-btn');
+  const hireMeBtn = document.getElementById('hire-me-btn');
+  
+  const emailGmailOpt = document.getElementById('email-opt-gmail');
+  const emailOutlookOpt = document.getElementById('email-opt-outlook');
+  const emailDefaultOpt = document.getElementById('email-opt-default');
+  const emailCopyOpt = document.getElementById('email-opt-copy');
+  
+  const openEmailModal = (e) => {
+    e.preventDefault();
+    if (emailModal) {
+      emailModal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+  };
 
-    // Close dropdown if clicked outside
-    document.addEventListener('click', (event) => {
-      if (!hireMeContainer.contains(event.target) && hireMeContainer.classList.contains('active')) {
-        hireMeContainer.classList.remove('active');
+  const closeEmailModal = () => {
+    if (emailModal) {
+      emailModal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  };
+
+  if (footerEmailBtn) {
+    footerEmailBtn.addEventListener('click', openEmailModal);
+  }
+
+  if (hireMeBtn) {
+    hireMeBtn.addEventListener('click', openEmailModal);
+  }
+
+  if (emailModalClose) {
+    emailModalClose.addEventListener('click', closeEmailModal);
+  }
+
+  if (emailModal) {
+    emailModal.addEventListener('click', (e) => {
+      if (e.target === emailModal) {
+        closeEmailModal();
       }
     });
   }
 
-  if (mailSystemDefaultBtn) {
-    mailSystemDefaultBtn.addEventListener('click', () => {
-      window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
-      hireMeContainer.classList.remove('active');
-    });
-  }
-
-  if (mailGmailBtn) {
-    mailGmailBtn.addEventListener('click', () => {
+  // Bind email options
+  if (emailGmailOpt) {
+    emailGmailOpt.addEventListener('click', () => {
       const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipientEmail}&su=${subject}&body=${body}`;
       window.open(gmailUrl, '_blank');
-      hireMeContainer.classList.remove('active');
+      closeEmailModal();
     });
   }
 
-  if (mailOutlookBtn) {
-    mailOutlookBtn.addEventListener('click', () => {
-      const outlookUrl = `https://outlook.live.com/owa/?path=/mail/action/compose&to=${recipientEmail}&subject=${subject}&body=${body}`;
+  if (emailOutlookOpt) {
+    emailOutlookOpt.addEventListener('click', () => {
+      const outlookUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${recipientEmail}&subject=${subject}&body=${body}`;
       window.open(outlookUrl, '_blank');
-      hireMeContainer.classList.remove('active');
+      closeEmailModal();
     });
   }
 
-  if (mailCopyBtn) {
-    mailCopyBtn.addEventListener('click', async () => {
-      const emailContent = `To: ${recipientEmail}\nSubject: ${decodeURIComponent(subject)}\n\n${decodeURIComponent(body)}`;
-      try {
-        await navigator.clipboard.writeText(emailContent);
-        alert('Email content copied to clipboard!');
-      } catch (err) {
-        console.error('Failed to copy email content: ', err);
-        alert('Failed to copy email content. Please copy manually: ' + recipientEmail);
-      }
-      hireMeContainer.classList.remove('active');
+  if (emailDefaultOpt) {
+    emailDefaultOpt.addEventListener('click', () => {
+      window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+      closeEmailModal();
     });
+  }
+
+  if (emailCopyOpt) {
+    emailCopyOpt.addEventListener('click', () => {
+      navigator.clipboard.writeText(recipientEmail).then(() => {
+        let toast = document.getElementById('email-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'email-toast';
+          toast.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00bcd4;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 188, 212, 0.4);
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+          `;
+          document.body.appendChild(toast);
+        }
+        toast.textContent = 'Email copied to clipboard!';
+        toast.style.opacity = '1';
+        
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          setTimeout(() => toast.remove(), 300);
+        }, 2000);
+      }).catch(err => {
+        alert('Failed to copy email to clipboard: ' + recipientEmail);
+      });
+      closeEmailModal();
+    });
+  }
+
+  // ---------- SCROLL SPY (ACTIVE NAV LINK INDICATOR) ----------
+  const scrollSections = document.querySelectorAll('section');
+  const scrollNavLinks = document.querySelectorAll('#nav-menu a[href^="#"]');
+
+  const spyObserverOptions = {
+    root: null,
+    rootMargin: '-30% 0px -50% 0px',
+    threshold: 0
+  };
+
+  const spyObserverCallback = (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        scrollNavLinks.forEach(link => {
+          if (link.getAttribute('href') === `#${id}`) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+      }
+    });
+  };
+
+  try {
+    const spyObserver = new IntersectionObserver(spyObserverCallback, spyObserverOptions);
+    scrollSections.forEach(section => spyObserver.observe(section));
+  } catch (err) {
+    console.error('ScrollSpy IntersectionObserver failed to initialize: ', err);
   }
 });
 
